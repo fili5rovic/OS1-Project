@@ -47,6 +47,8 @@ public:
                     nNode->prev = current->prev;
                     nNode->next = current->next;
                     nNode->size = current->size - newSize;
+                    if(current == freeHead)
+                        freeHead = nNode;
                 }
 
                 if (current->prev != nullptr)
@@ -71,7 +73,16 @@ public:
         return allocatedMemory;
     }
 
-
+    int free(void* ptr) {
+        if (ptr == nullptr)
+            return 0;
+        uint64 addr = reinterpret_cast<uint64>(ptr)-sizeof(Node);
+        Node* node = reinterpret_cast<Node*>(addr);
+        if (node == nullptr)
+            return -1;
+        addFreeNode(node);
+        return 0;
+    }
 
 private:
     KMemoryAllocator() {
@@ -89,7 +100,7 @@ private:
         if (node == nullptr)
             return;
         Node* current = freeHead;
-        while (current->next != nullptr) {
+        while (current->next != nullptr && node < current->next) {
             current = current->next;
         }
         current->next = node;

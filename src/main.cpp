@@ -5,12 +5,18 @@
 #include "../h/KMemoryAllocator.h"
 #include "../lib/console.h"
 
+
 int main() {
-    void *a = KMemoryAllocator::getInstance().allocate(sizeof(char));
-    char* b = static_cast<char *>(a);
-    *b = 'a';
-    __putc(*b);
-    __putc('\n');
-    __putc('\n');
+    void* a = KMemoryAllocator::getInstance().allocate(sizeof(int));
+    int* b = static_cast<int*>(a);
+    *b = 305;
+
+    a = KMemoryAllocator::getInstance().allocate(sizeof(int));
+    int* c = static_cast<int*>(a);
+    *c = *b;
+
+    KMemoryAllocator::getInstance().free(a);
+    KMemoryAllocator::getInstance().free(b);
+    KMemoryAllocator::getInstance().free(c);
     return 0;
 }
