@@ -13,10 +13,10 @@ int main() {
 
     a = KMemoryAllocator::getInstance().allocate(sizeof(int));
     int* c = static_cast<int*>(a);
-    *c = *b;
+    *c = *b + 3;
 
-    KMemoryAllocator::getInstance().free(a);
     KMemoryAllocator::getInstance().free(b);
-    KMemoryAllocator::getInstance().free(c);
+    KMemoryAllocator::getInstance().free(a);
+    // KMemoryAllocator::getInstance().free(c);
     return 0;
 }
