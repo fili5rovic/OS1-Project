@@ -14,7 +14,6 @@ void test1() {
     KMemoryAllocator::getInstance().printStateWithMessage("Initial state: \n");
     a = KMemoryAllocator::getInstance().allocate(sizeof(int));
     KMemoryAllocator::getInstance().printStateWithMessage("After making *a:\n");
-
     b = static_cast<int*>(a);
     *b = 305;
 
