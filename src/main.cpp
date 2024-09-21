@@ -1,22 +1,36 @@
 //
-// Created by os on 9/13/24.
+// Created by fili5rovic on 9/13/24.
 //
 
+
 #include "../h/KMemoryAllocator.h"
-#include "../lib/console.h"
+#include "../h/Helper.h"
 
 
-int main() {
-    void* a = KMemoryAllocator::getInstance().allocate(sizeof(int));
-    int* b = static_cast<int*>(a);
+void test1() {
+    void* a;
+    int *b, *c;
+
+    KMemoryAllocator::getInstance().printStateWithMessage("Initial state: \n");
+    a = KMemoryAllocator::getInstance().allocate(sizeof(int));
+    KMemoryAllocator::getInstance().printStateWithMessage("After making *a:\n");
+
+    b = static_cast<int*>(a);
     *b = 305;
 
     a = KMemoryAllocator::getInstance().allocate(sizeof(int));
-    int* c = static_cast<int*>(a);
+    c = static_cast<int*>(a);
     *c = *b + 3;
+    KMemoryAllocator::getInstance().printStateWithMessage("After making *a:\n");
 
     KMemoryAllocator::getInstance().free(b);
+    KMemoryAllocator::getInstance().printStateWithMessage("After freeing *b:\n");
+
     KMemoryAllocator::getInstance().free(a);
-    // KMemoryAllocator::getInstance().free(c);
+    KMemoryAllocator::getInstance().printStateWithMessage("After freeing *a:\n");
+}
+
+int main() {
+    test1();
     return 0;
 }

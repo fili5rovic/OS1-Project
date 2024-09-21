@@ -1,5 +1,5 @@
 //
-// Created by os on 9/13/24.
+// Created by fili5rovic on 9/13/24.
 //
 
 #ifndef KMEMORYALLOCATOR_H
@@ -7,6 +7,7 @@
 
 #include "../lib/hw.h"
 #include "../lib/console.h"
+#include "../h/Helper.h"
 
 struct Node {
     Node* next;
@@ -31,27 +32,15 @@ public:
 
 
     void* allocate(const size_t _size) {
-        size_t newSize = _size + sizeof(Node);
-        if (newSize % MEM_BLOCK_SIZE != 0) {
-            newSize -= newSize % MEM_BLOCK_SIZE;
-            newSize += MEM_BLOCK_SIZE;
-        }
-        nextAddress = 0;
+        const size_t newSize = alignToBlockSize(_size);
         Node* current = freeHead;
         while (current != nullptr) {
             // first fit
             if (current->size >= newSize) {
                 // if current has more space, make another free node from the rest
-                const bool overLimit = reinterpret_cast<uint64>(current) + newSize + sizeof(Node) >= reinterpret_cast<
-                                           uint64>(HEAP_END_ADDR);
                 Node* nNode = nullptr;
-                if (current->size - newSize >= MEM_BLOCK_SIZE && !overLimit) {
-                    nNode = reinterpret_cast<Node*>(reinterpret_cast<char*>(current) + newSize);
-                    nNode->prev = current->prev;
-                    nNode->next = current->next;
-                    nNode->size = current->size - newSize;
-                    if (current == freeHead)
-                        freeHead = nNode;
+                if (canSplitBlockByNewSize(current, newSize)) {
+                    nNode = makeNewNodeFromCurrent(current, newSize);
                 }
 
                 if (current->prev != nullptr)
@@ -62,16 +51,15 @@ public:
                 current->next = nullptr;
                 current->prev = nullptr;
                 current->size = newSize;
+
                 nextAddress = reinterpret_cast<uint64>(current) + sizeof(Node);
-                break;
+                return reinterpret_cast<void*>(nextAddress);
             }
             current = current->next;
         }
-        if (nextAddress == 0)
-            return nullptr;
-
-        void* allocatedMemory = reinterpret_cast<void*>(nextAddress);
-        return allocatedMemory;
+        // only comes here when there are no more free nodes available
+        nextAddress = 0;
+        return nullptr;
     }
 
     int free(void* ptr) {
@@ -82,6 +70,23 @@ public:
         if (node == nullptr)
             return -1;
         return addFreeNode(node);
+    }
+
+    void printStateWithMessage(const char* message) {
+        Helper::printString(message);
+        printState();
+    }
+
+    void printState() const {
+        Node* curr = freeHead;
+        while (curr) {
+            Helper::printString("Node (");
+            Helper::printInt(reinterpret_cast<uint64>(curr));
+            Helper::printString(")\tSize: ");
+            Helper::printInt(curr->size);
+            Helper::printNewLine();
+            curr = curr->next;
+        }
     }
 
 private:
@@ -140,7 +145,7 @@ private:
     }
 
     int tryToMergeNodes(Node* smallerNode, Node* largerNode) {
-        if(smallerNode == nullptr || largerNode == nullptr)
+        if (smallerNode == nullptr || largerNode == nullptr)
             return 1;
         uint64 diff = reinterpret_cast<uint64>(largerNode) - reinterpret_cast<uint64>(smallerNode);
         if (diff == smallerNode->size) {
@@ -150,7 +155,7 @@ private:
             __putc('G');
             __putc('E');
             __putc('\n');
-            smallerNode->size += largerNode->size + sizeof(Node);
+            smallerNode->size += largerNode->size; // why not + sizeof(Node)?
             smallerNode->next = largerNode->next;
             largerNode->next = nullptr;
             largerNode->prev = nullptr;
@@ -159,6 +164,35 @@ private:
         }
         return 2;
     }
+
+    size_t alignToBlockSize(size_t _size) {
+        size_t newSize = _size + sizeof(Node);
+        if (newSize % MEM_BLOCK_SIZE != 0) {
+            newSize -= newSize % MEM_BLOCK_SIZE;
+            newSize += MEM_BLOCK_SIZE;
+        }
+        return newSize;
+    }
+
+    bool canSplitBlockByNewSize(Node* current, const size_t totalSize) {
+        // ensure the remaining space is large enough to form a new free block
+        return (current->size - totalSize >= MEM_BLOCK_SIZE &&
+                (reinterpret_cast<uint64>(current) + totalSize + sizeof(Node)) <
+                reinterpret_cast<uint64>(HEAP_END_ADDR));
+    }
+
+    Node* makeNewNodeFromCurrent(Node* current, const uint64 newSize) {
+        if (current == nullptr)
+            return nullptr;
+        Node* node = reinterpret_cast<Node*>(reinterpret_cast<char*>(current) + newSize);
+        node->prev = current->prev;
+        node->next = current->next;
+        node->size = current->size - newSize;
+        if (current == freeHead)
+            freeHead = node;
+        return node;
+    }
+
 
     Node* freeHead;
     uint64 nextAddress;
