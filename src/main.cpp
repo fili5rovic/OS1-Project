@@ -29,7 +29,119 @@ void test1() {
     KMemoryAllocator::getInstance().printStateWithMessage("After freeing *a:\n");
 }
 
+void testBasicAllocation() {
+    KMemoryAllocator &allocator = KMemoryAllocator::getInstance();
+
+    // Allocate 64 bytes of memory
+    void* ptr = allocator.allocate(64);
+    if (ptr != nullptr) {
+        Helper::print("[SUCCESS] Basic Allocation Test Passed: Allocated 64 bytes.\n");
+    } else {
+        Helper::print("[FAIL] Basic Allocation Test Failed: Allocation failed.\n");
+    }
+}
+
+void testAllocationAndFreeing() {
+    KMemoryAllocator &allocator = KMemoryAllocator::getInstance();
+
+    // Allocate 128 bytes of memory
+    void* ptr1 = allocator.allocate(128);
+    if (ptr1 != nullptr) {
+        Helper::print("First Allocation Test Passed: Allocated 128 bytes.\n");
+    } else {
+        Helper::print("First Allocation Test Failed: Allocation failed.\n");
+    }
+
+    // Allocate another block of 256 bytes
+    void* ptr2 = allocator.allocate(256);
+    if (ptr2 != nullptr) {
+        Helper::print("Second Allocation Test Passed: Allocated 256 bytes.\n");
+    } else {
+        Helper::print("Second Allocation Test Failed: Allocation failed.\n");
+    }
+
+    // Free the first block
+    int freeResult1 = allocator.free(ptr1);
+    if (freeResult1 == 0) {
+        Helper::print("Freeing First Block Test Passed.\n");
+    } else {
+        Helper::print("Freeing First Block Test Failed.\n");
+    }
+
+    // Free the second block
+    int freeResult2 = allocator.free(ptr2);
+    if (freeResult2 == 0) {
+        Helper::print("Freeing Second Block Test Passed.\n");
+    } else {
+        Helper::print("Freeing Second Block Test Failed.\n");
+    }
+}
+
+
+void testSplittingAndMerging() {
+    KMemoryAllocator &allocator = KMemoryAllocator::getInstance();
+
+    // Allocate 512 bytes of memory
+    void* ptr1 = allocator.allocate(512);
+
+    if (ptr1 != nullptr) {
+        Helper::print("First Allocation (512 bytes) Passed.\n");
+    } else {
+        Helper::print("First Allocation (512 bytes) Failed.\n");
+        return;
+    }
+
+    // Allocate a smaller block, should split the original free block
+    void* ptr2 = allocator.allocate(64);
+    if (ptr2 != nullptr) {
+        Helper::print("Second Allocation (64 bytes) Passed.\n");
+    } else {
+        Helper::print("Second Allocation (64 bytes) Failed.\n");
+    }
+
+    // Free both blocks
+    allocator.free(ptr1);
+    allocator.free(ptr2);
+    Helper::print("Freeing Both Blocks Test Completed.\n");
+}
+
+void testAllocatingAllMemory() {
+    KMemoryAllocator &allocator = KMemoryAllocator::getInstance();
+    allocator.printStateWithMessage("Initial state: \n");
+    // Allocate as much memory as possible
+    size_t heapSize = reinterpret_cast<uint64>(HEAP_END_ADDR) - reinterpret_cast<uint64>(HEAP_START_ADDR);
+    Helper::print("Real heap size: ");
+    Helper::printInt(heapSize); // todo heapsize na pocetku je -48 a treba -24
+    Helper::printNewLine();
+    heapSize -= sizeof(Node);
+    // heapSize -= 64; // free ne radi sa vrednostima manjim od heapSize - 64 todo udji u free sa breakpoint
+    Helper::print("Working heap size: ");
+    Helper::printInt(heapSize);
+    Helper::printNewLine();
+    void* ptr = allocator.allocate(heapSize);
+    allocator.printStateWithMessage("After *ptr: \n");
+    if (ptr != nullptr)
+        Helper::print("[SUCCESS] Allocation of the entire heap.\n");
+    else
+        Helper::print("[FAIL] Allocation of the entire heap.\n");
+
+
+    // Free the entire heap
+    int freeResult = allocator.free(ptr);
+    allocator.printStateWithMessage("After free: \n");
+    if (freeResult == 0)
+        Helper::print("[SUCCESS] Freeing the entire heap succeeded.\n");
+    else
+        Helper::print("[FAIL] Freeing the entire heap failed.\n");
+}
+
 int main() {
-    test1();
+    // test1();
+    testBasicAllocation();
+    testAllocationAndFreeing();
+    testSplittingAndMerging();
+    // testAllocatingAllMemory();
+
+    // testAllocatingAllMemory();
     return 0;
 }

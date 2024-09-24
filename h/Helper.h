@@ -22,7 +22,7 @@ public:
         __putc('\n');
     }
 
-    static void printString(const char* s) {
+    static void print(const char* s) {
         for (; *s != '\0'; s++) {
             __putc(*s);
         }

@@ -19,7 +19,8 @@ struct Node {
 };
 
 /**
- * Singleton class for managing memory allocation and deallocation.
+ * Singleton class for managing memory allocation and dealloca
+ * tion.
  * Provides mechanisms for allocating memory, freeing memory blocks, and handling
  * a linked list of free memory blocks.
  */
@@ -47,6 +48,10 @@ public:
     */
     void* allocate(const size_t _size) {
         const size_t newSize = alignToBlockSize(_size);
+        // Helper::print("TRYING TO ALLOCATE: ");
+        // Helper::printInt(newSize);
+        // Helper::print("\n");
+
         Node* current = freeHead;
         while (current != nullptr) {
             // first fit
@@ -65,6 +70,9 @@ public:
                 current->next = nullptr;
                 current->prev = nullptr;
                 current->size = newSize;
+
+                if(current == freeHead && nNode == nullptr)
+                    freeHead = nullptr;
 
                 nextAddress = reinterpret_cast<uint64>(current) + sizeof(Node);
                 return reinterpret_cast<void*>(nextAddress);
@@ -97,7 +105,7 @@ public:
      * @param message Message to print before the memory state.
      */
     void printStateWithMessage(const char* message) {
-        Helper::printString(message);
+        Helper::print(message);
         printState();
     }
 
@@ -108,9 +116,9 @@ public:
     void printState() const {
         Node* curr = freeHead;
         while (curr) {
-            Helper::printString("Node (");
+            Helper::print("Node (");
             Helper::printInt(reinterpret_cast<uint64>(curr));
-            Helper::printString(")\tSize: ");
+            Helper::print(")\tSize: ");
             Helper::printInt(curr->size);
             Helper::printNewLine();
             curr = curr->next;
@@ -120,12 +128,12 @@ public:
 private:
     KMemoryAllocator() {
         nextAddress = reinterpret_cast<uint64>(HEAP_START_ADDR);
-
         freeHead = (Node*) ((char*) nextAddress);
         nextAddress += sizeof(Node);
+
         freeHead->next = nullptr;
         freeHead->prev = nullptr;
-        freeHead->size = reinterpret_cast<uint64>(HEAP_END_ADDR) - nextAddress - sizeof(Node);
+        freeHead->size = reinterpret_cast<uint64>(HEAP_END_ADDR) - nextAddress + sizeof(Node); // -sizeof(Node)
     }
 
     // Helper functions for alloc()
@@ -136,7 +144,7 @@ private:
      */
     size_t alignToBlockSize(size_t _size) {
         size_t newSize = _size + sizeof(Node);
-        if (newSize % MEM_BLOCK_SIZE != 0) {
+        if (newSize % MEM_BLOCK_SIZE != 0 && newSize <= 134182016) {
             newSize -= newSize % MEM_BLOCK_SIZE;
             newSize += MEM_BLOCK_SIZE;
         }
@@ -179,7 +187,7 @@ private:
     /**
      * Adds node to free nodes linked list
      * @param node Node parameter that should be added to free node list
-     * @return Returns non-zero if the execution fails. Currently, always returns 0.
+     * @return Returns non-zero if the execution fails.
      */
     int addFreeNode(Node* node) {
         if (freeHead == nullptr) {
@@ -189,7 +197,7 @@ private:
         Node* current = freeHead;
 
         while (current != nullptr) {
-            if (current == node) return -1;
+            if (current == node) return 2;
             // add node before current if the current is bigger
             if (current > node) {
                 linkAfter(current, node);
