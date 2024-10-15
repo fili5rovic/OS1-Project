@@ -6,7 +6,7 @@
 #define KMEMORYALLOCATOR_H
 
 #include "../lib/hw.h"
-#include "../h/Helper.h"
+#include "../h/print.h"
 
 /**
  * Struct representing a node in the memory management system.
@@ -105,7 +105,7 @@ public:
      * @param message Message to print before the memory state.
      */
     void printStateWithMessage(const char* message) {
-        Helper::print(message);
+        print(message);
         printState();
     }
 
@@ -116,11 +116,11 @@ public:
     void printState() const {
         Node* curr = freeHead;
         while (curr) {
-            Helper::print("Node (");
-            Helper::printInt(reinterpret_cast<uint64>(curr));
-            Helper::print(")\tSize: ");
-            Helper::printInt(curr->size);
-            Helper::printNewLine();
+            print("Node (");
+            printInt(reinterpret_cast<uint64>(curr));
+            print(")\tSize: ");
+            printInt(curr->size);
+            printNewLine();
             curr = curr->next;
         }
     }
