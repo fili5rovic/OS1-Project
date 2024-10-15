@@ -8,24 +8,11 @@
 #include "../lib/console.h"
 #include "../lib/hw.h"
 
-inline void printInt(const uint64 n) {
-    if (n / 10) {
-        printInt(n / 10);
-    }
+void printInt(uint64 n);
 
-    __putc((n % 10) + '0');
-}
+void printNewLine();
 
-inline void printNewLine() {
-    __putc('\n');
-}
-
-inline void print(const char* s) {
-    for (; *s != '\0'; s++) {
-        __putc(*s);
-    }
-    // __putc('\n');
-}
+void print(const char* s);
 
 
 #endif //HELPER_H
