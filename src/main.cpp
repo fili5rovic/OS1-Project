@@ -135,12 +135,9 @@ void testAllocatingAllMemory() {
 }
 
 int main() {
-    // test1();
-    // testBasicAllocation();
-    // testAllocationAndFreeing();
-    // testSplittingAndMerging();
-    testAllocatingAllMemory();
-
-    // testAllocatingAllMemory();
+    int* a = new int(5);
+    printInt(*a);
+    printNewLine();
+    delete a;
     return 0;
 }
