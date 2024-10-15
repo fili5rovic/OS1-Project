@@ -2,7 +2,7 @@
 // Created by os on 10/15/24.
 //
 
-#include "../h/KMemoryAllocator.h"
+#include "../h/KMemoryAllocator.hpp"
 
 
 void* KMemoryAllocator::allocate(const size_t _size) {

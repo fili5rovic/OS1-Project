@@ -2,7 +2,7 @@
 // Created by os on 10/15/24.
 //
 
-#include "../h/print.h"
+#include "../h/print.hpp"
 
 void printInt(const uint64 n) {
     if (n / 10) {

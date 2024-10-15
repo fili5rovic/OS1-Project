@@ -6,7 +6,7 @@
 #define KMEMORYALLOCATOR_H
 
 #include "../lib/hw.h"
-#include "../h/print.h"
+#include "../h/print.hpp"
 
 /**
  * Struct representing a node in the memory management system.

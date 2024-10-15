@@ -1,7 +1,7 @@
 //
 // Created by os on 10/15/24.
 //
-#include "../h/KMemoryAllocator.h"
+#include "../h/KMemoryAllocator.hpp"
 #include "../lib/mem.h"
 
 void* operator new(const uint64 n) {
