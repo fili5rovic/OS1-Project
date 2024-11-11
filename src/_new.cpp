@@ -12,10 +12,10 @@ void* operator new[](const uint64 n) {
     return KMemoryAllocator::getInstance().allocate(n);
 }
 
-void operator delete(void* p) {
+void operator delete(void* p) noexcept {
     KMemoryAllocator::getInstance().free(p);
 }
 
-void operator delete[](void* p) {
+void operator delete[](void* p) noexcept {
     KMemoryAllocator::getInstance().free(p);
 }

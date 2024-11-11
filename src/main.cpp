@@ -134,10 +134,29 @@ void testAllocatingAllMemory() {
         print("[FAIL] Freeing the entire heap failed.\n");
 }
 
+#include "../h/ccb.hpp"
+#include "../h/workers.hpp"
+
 int main() {
-    int* a = new int(5);
-    printInt(*a);
-    printNewLine();
-    delete a;
+    CCB* coroutines[3];
+
+    coroutines[0] = CCB::createCoroutine(nullptr);
+    CCB::running = coroutines[0];
+
+    coroutines[1] = CCB::createCoroutine(workerBodyA);
+    print("CoroutineA created");
+    coroutines[2] = CCB::createCoroutine(workerBodyB);
+    print("CoroutineB created");
+
+    while(!(coroutines[1]->isFinished() && coroutines[2]->isFinished())) {
+        CCB::yield();
+    }
+
+    for(auto& coroutine : coroutines) {
+        delete coroutine;
+    }
+
+    print("Finished\n");
+
     return 0;
 }
