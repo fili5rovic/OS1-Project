@@ -7,16 +7,18 @@
 
 #include "list.hpp"
 
-class CCB;
+class TCB;
 
-class Scheduler {
+class Scheduler
+{
 private:
-    static List<CCB> readyThreadQueue;
+    static List<TCB> readyThreadQueue;
 
 public:
-    static CCB* get();
+    static TCB *get();
 
-    static void put(CCB* ccb);
+    static void put(TCB *ccb);
+
 };
 
 #endif //OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_SCHEDULER_HPP

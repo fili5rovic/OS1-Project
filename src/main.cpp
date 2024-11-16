@@ -4,6 +4,9 @@
 
 
 #include "../h/KMemoryAllocator.hpp"
+#include "../h/riscv.hpp"
+#include "../h/tcb.hpp"
+#include "../h/workers.hpp"
 
 
 void test1() {
@@ -134,28 +137,35 @@ void testAllocatingAllMemory() {
         print("[FAIL] Freeing the entire heap failed.\n");
 }
 
-#include "../h/ccb.hpp"
-#include "../h/workers.hpp"
 
 int main() {
-    CCB* coroutines[3];
+    TCB* threads[5];
 
-    coroutines[0] = CCB::createCoroutine(nullptr);
-    CCB::running = coroutines[0];
+    threads[0] = TCB::createThread(nullptr);
+    TCB::running = threads[0];
 
-    coroutines[1] = CCB::createCoroutine(workerBodyA);
-    print("CoroutineA created");
-    coroutines[2] = CCB::createCoroutine(workerBodyB);
-    print("CoroutineB created");
+    threads[1] = TCB::createThread(workerBodyA);
+    print("ThreadA created\n");
+    threads[2] = TCB::createThread(workerBodyB);
+    print("ThreadB created\n");
+    threads[3] = TCB::createThread(workerBodyC);
+    print("ThreadC created\n");
+    threads[4] = TCB::createThread(workerBodyD);
+    print("ThreadD created\n");
 
-    while(!(coroutines[1]->isFinished() && coroutines[2]->isFinished())) {
-        CCB::yield();
+    Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
+    Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+
+    while (!(threads[1]->isFinished() &&
+             threads[2]->isFinished() &&
+             threads[3]->isFinished() &&
+             threads[4]->isFinished())) {
+        TCB::yield();
     }
 
-    for(auto& coroutine : coroutines) {
-        delete coroutine;
+    for (auto &thread: threads) {
+        delete thread;
     }
-
     print("Finished\n");
 
     return 0;

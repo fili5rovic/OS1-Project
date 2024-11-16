@@ -1,15 +1,17 @@
 //
-// Created by marko on 20.4.222..
+// Created by marko on 20.4.22..
 //
 
 #include "../h/scheduler.hpp"
 
-List<CCB> Scheduler::readyThreadQueue;
+List<TCB> Scheduler::readyThreadQueue;
 
-CCB* Scheduler::get() {
+TCB *Scheduler::get()
+{
     return readyThreadQueue.removeFirst();
 }
 
-void Scheduler::put(CCB* ccb) {
+void Scheduler::put(TCB *ccb)
+{
     readyThreadQueue.addLast(ccb);
 }

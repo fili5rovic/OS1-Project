@@ -11,11 +11,8 @@ class Riscv
 {
 public:
 
-    // push x3..x31 registers on stack
-    static void pushRegisters();
-
-    // pop x3..x31 registers on stack
-    static void popRegisters();
+    // pop sstatus.spp and sstatus.spie bits (has to be a non inline function)
+    static void popSppSpie();
 
     // read register scause
     static uint64 r_scause();
@@ -79,10 +76,15 @@ public:
     // write register sstatus
     static void w_sstatus(uint64 sstatus);
 
+    // supervisor trap
+    static void supervisorTrap();
+
 private:
 
-};
+    // supervisor trap handler
+    static void handleSupervisorTrap();
 
+};
 
 inline uint64 Riscv::r_scause()
 {
@@ -175,8 +177,5 @@ inline void Riscv::w_sstatus(uint64 sstatus)
 {
     __asm__ volatile ("csrw sstatus, %[sstatus]" : : [sstatus] "r"(sstatus));
 }
-
-
-
 
 #endif //OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_RISCV_HPP
