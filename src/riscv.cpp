@@ -14,39 +14,82 @@ void Riscv::popSppSpie()
 
 void Riscv::handleSupervisorTrap()
 {
+    uint64 a1 = r_a1();
+
     uint64 scause = r_scause();
-    if (scause == 0x0000000000000008UL || scause == 0x0000000000000009UL)
+
+    w_a1(a1);
+
+    if (scause == TIMER_INTERRUPT)
     {
-        // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
-        uint64 volatile sepc = r_sepc() + 4;
-        uint64 volatile sstatus = r_sstatus();
-        TCB::timeSliceCounter = 0;
-        TCB::dispatch();
-        w_sstatus(sstatus);
-        w_sepc(sepc);
+        handleTimerInterrupt();
     }
-    else if (scause == 0x8000000000000001UL)
+    else if (scause == CONSOLE_INTERRUPT)
     {
-        // interrupt: yes; cause code: supervisor software interrupt (CLINT; machine timer interrupt)
-        mc_sip(SIP_SSIP);
-        TCB::timeSliceCounter++;
-        if (TCB::timeSliceCounter >= TCB::running->getTimeSlice())
-        {
-            uint64 volatile sepc = r_sepc();
-            uint64 volatile sstatus = r_sstatus();
-            TCB::timeSliceCounter = 0;
-            TCB::dispatch();
-            w_sstatus(sstatus);
-            w_sepc(sepc);
-        }
+        handleConsoleInterrupt();
     }
-    else if (scause == 0x8000000000000009UL)
+    else if (scause == USER_INTERRUPT || scause == SYSTEM_INTERRUPT)
     {
-        // interrupt: yes; cause code: supervisor external interrupt (PLIC; could be keyboard)
-        console_handler();
+        handleInterrupts();
+
     }
     else
     {
+        printDebug("SCAUSE:", scause);
         // unexpected trap cause
+    }
+}
+void Riscv::handleInterrupts() {
+    // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
+    uint64 volatile sepc = r_sepc() + 4;
+    uint64 volatile sstatus = r_sstatus();
+    // TCB::dispatch(); //UNCOMMENT FOR THREAD TEST
+
+    uint64 a0 = r_a0();
+    uint64 a1 = r_a1();
+
+    // printDebug("Interrupt: ", a0);
+
+    switch(a0) {
+        case 1: {
+            uint64 size = a1;
+            void* addr;
+            addr = KMemoryAllocator::getInstance().allocate(size);
+
+            // uint64 address = (uint64) addr;
+            // printDebug("Address: ", address);
+
+            w_a0((uint64)addr);
+
+            break;
+        }
+        case 0x13: {
+            break;
+        }
+        default:
+            break;
+    }
+
+    w_sstatus(sstatus);
+    w_sepc(sepc);
+}
+
+void Riscv::handleConsoleInterrupt() {
+    // interrupt: yes; cause code: supervisor external interrupt (PLIC; could be keyboard)
+    console_handler();
+}
+
+void Riscv::handleTimerInterrupt() {
+    // interrupt: yes; cause code: supervisor software interrupt (CLINT; machine timer interrupt)
+    mc_sip(SIP_SSIP);
+    TCB::timeSliceCounter++;
+    if (TCB::timeSliceCounter >= TCB::running->getTimeSlice())
+    {
+        uint64 volatile sepc = r_sepc();
+        uint64 volatile sstatus = r_sstatus();
+
+        TCB::dispatch();
+        w_sstatus(sstatus);
+        w_sepc(sepc);
     }
 }

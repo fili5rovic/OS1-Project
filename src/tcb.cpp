@@ -1,7 +1,3 @@
-//
-// Created by marko on 20.4.22..
-//
-
 #include "../h/tcb.hpp"
 #include "../h/riscv.hpp"
 
@@ -9,13 +5,11 @@ TCB *TCB::running = nullptr;
 
 uint64 TCB::timeSliceCounter = 0;
 
-TCB *TCB::createThread(Body body)
-{
+TCB *TCB::createThread(Body body) {
     return new TCB(body, TIME_SLICE);
 }
 
-void TCB::yield()
-{
+void TCB::yield() {
     __asm__ volatile ("ecall");
 }
 

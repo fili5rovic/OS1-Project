@@ -38,3 +38,9 @@ void print(const char* s) {
     }
     Riscv::ms_sstatus(sstatus & Riscv::SSTATUS_SIE ? Riscv::SSTATUS_SIE : 0);
 }
+
+void printDebug(const char* s, uint64 val) {
+    print(s);
+    printInt(val);
+    printNewLine();
+}

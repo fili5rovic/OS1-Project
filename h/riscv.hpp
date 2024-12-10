@@ -7,8 +7,7 @@
 
 #include "../lib/hw.h"
 
-class Riscv
-{
+class Riscv {
 public:
 
     // pop sstatus.spp and sstatus.spie bits (has to be a non inline function)
@@ -16,6 +15,21 @@ public:
 
     // read register scause
     static uint64 r_scause();
+
+    enum SCAUSE {
+        USER_INTERRUPT = 0x0000000000000008UL,
+        SYSTEM_INTERRUPT = 0x0000000000000009UL,
+        TIMER_INTERRUPT = 0x8000000000000001UL,
+        CONSOLE_INTERRUPT = 0x8000000000000009UL
+    };
+
+    static uint64 r_a0();
+
+    static uint64 r_a1();
+
+    static void w_a0(uint64 a0);
+
+    static void w_a1(uint64 a1);
 
     // write register scause
     static void w_scause(uint64 scause);
@@ -84,6 +98,11 @@ private:
     // supervisor trap handler
     static void handleSupervisorTrap();
 
+    static inline void handleConsoleInterrupt();
+
+    static inline void handleTimerInterrupt();
+
+    static inline void handleInterrupts();
 };
 
 inline uint64 Riscv::r_scause()
@@ -178,4 +197,30 @@ inline void Riscv::w_sstatus(uint64 sstatus)
     __asm__ volatile ("csrw sstatus, %[sstatus]" : : [sstatus] "r"(sstatus));
 }
 
-#endif //OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_RISCV_HPP
+inline uint64 Riscv::r_a0() {
+    uint64 volatile a_ret;
+
+    __asm__ volatile ("mv %0, a0" : "=r"(a_ret));
+    return a_ret;
+}
+
+inline uint64 Riscv::r_a1() {
+    uint64 volatile a_ret;
+
+    __asm__ volatile ("mv %0, a1" : "=r"(a_ret));
+    return a_ret;
+}
+
+inline void Riscv::w_a0(uint64 a0) {
+    __asm__ volatile ("mv a0, %0" : : "r"(a0));
+}
+
+inline void Riscv::w_a1(uint64 a1) {
+    __asm__ volatile ("mv a1, %0" : : "r"(a1));
+}
+
+
+
+
+
+#endif

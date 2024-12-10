@@ -5,6 +5,7 @@
 
 #include "../h/KMemoryAllocator.hpp"
 #include "../h/riscv.hpp"
+#include "../h/syscall_c.hpp"
 #include "../h/tcb.hpp"
 #include "../h/workers.hpp"
 
@@ -115,6 +116,7 @@ void testAllocatingAllMemory() {
     print("Real heap size: ");
     printInt(heapSize);
     printNewLine();
+
     heapSize -= sizeof(Node);
     // heapSize -= 64; // free ne radi sa vrednostima manjim od heapSize - 64
     print("Working heap size: ");
@@ -137,8 +139,7 @@ void testAllocatingAllMemory() {
         print("[FAIL] Freeing the entire heap failed.\n");
 }
 
-
-int main() {
+void threadTest() {
     TCB* threads[5];
 
     threads[0] = TCB::createThread(nullptr);
@@ -161,12 +162,32 @@ int main() {
              threads[3]->isFinished() &&
              threads[4]->isFinished())) {
         TCB::yield();
-    }
+             }
 
     for (auto &thread: threads) {
         delete thread;
     }
     print("Finished\n");
+}
+
+
+int main() {
+    // threadTest();
+
+    Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
+    // Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+
+    // void* ptr = KMemoryAllocator::getInstance().allocate(sizeof(uint64));
+    // uint64* uPtr = (uint64*) ptr;
+    // *uPtr = 4;
+    // printDebug("Value is: ", *uPtr);
+
+    // ako identicnu stvar ovde odradim sa KMemoryAllocator, tu radi? slicnu adresu generise...
+    uint64* addr = (uint64*) mem_alloc(sizeof(uint64));
+    printInt((uint64)addr);
+    *addr = 3;
+    printDebug("Gay: ", *addr);
+    delete addr;
 
     return 0;
 }

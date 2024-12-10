@@ -14,5 +14,6 @@ void printNewLine();
 
 void print(const char* s);
 
+void printDebug(const char* s, uint64 val);
 
 #endif //HELPER_H

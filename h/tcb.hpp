@@ -20,6 +20,8 @@ public:
 
     uint64 getTimeSlice() const { return timeSlice; }
 
+    uint64 getSP() {return running->context.sp;}
+
     using Body = void (*)();
 
     static TCB *createThread(Body body);
@@ -27,6 +29,8 @@ public:
     static void yield();
 
     static TCB *running;
+
+
 
 private:
     TCB(Body body, uint64 timeSlice) :
