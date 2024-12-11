@@ -172,21 +172,11 @@ void threadTest() {
 
 
 int main() {
-    // threadTest();
-
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
-    // Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 
-    // void* ptr = KMemoryAllocator::getInstance().allocate(sizeof(uint64));
-    // uint64* uPtr = (uint64*) ptr;
-    // *uPtr = 4;
-    // printDebug("Value is: ", *uPtr);
-
-    // ako identicnu stvar ovde odradim sa KMemoryAllocator, tu radi? slicnu adresu generise...
     uint64* addr = (uint64*) mem_alloc(sizeof(uint64));
-    printInt((uint64)addr);
     *addr = 3;
-    printDebug("Gay: ", *addr);
+    printDebug("Value: ", *addr);
     delete addr;
 
     return 0;

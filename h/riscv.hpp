@@ -98,11 +98,15 @@ private:
     // supervisor trap handler
     static void handleSupervisorTrap();
 
-    static inline void handleConsoleInterrupt();
+    static void handleConsoleInterrupt(); // inline?
 
-    static inline void handleTimerInterrupt();
+    static void handleTimerInterrupt();  // inline?
 
-    static inline void handleInterrupts();
+    static void loadParams(uint64*);
+
+    static uint64 syscall(uint64* args);
+
+    // static inline void handleInterrupts();
 };
 
 inline uint64 Riscv::r_scause()
@@ -217,6 +221,15 @@ inline void Riscv::w_a0(uint64 a0) {
 
 inline void Riscv::w_a1(uint64 a1) {
     __asm__ volatile ("mv a1, %0" : : "r"(a1));
+}
+
+inline void Riscv::loadParams(uint64 *arr)
+{
+    __asm__ volatile ("mv %0, a0" : "=r" (arr[0]));
+    __asm__ volatile ("mv %0, a1" : "=r" (arr[1]));
+    __asm__ volatile ("mv %0, a2" : "=r" (arr[2]));
+    __asm__ volatile ("mv %0, a3" : "=r" (arr[3]));
+    __asm__ volatile ("mv %0, a4" : "=r" (arr[4]));
 }
 
 
