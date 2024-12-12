@@ -40,7 +40,7 @@ void Riscv::handleSupervisorTrap() {
 
     uint64 a1 = r_a1();
 
-    const uint64 scause = r_scause(); //TODO kada citam scause ovde imam ogroman broj, a na GDB kada citam imam 9? za mem free
+    const uint64 scause = r_scause();
     // printDebug("Scause pre: ", scause);
 
     w_a1(a1);
