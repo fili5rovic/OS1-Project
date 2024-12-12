@@ -174,10 +174,14 @@ void threadTest() {
 int main() {
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
 
+
     uint64* addr = (uint64*) mem_alloc(sizeof(uint64));
     *addr = 3;
     printDebug("Value: ", *addr);
-    delete addr;
 
+    mem_free(addr);
+
+
+    print("Main finished...\n");
     return 0;
 }

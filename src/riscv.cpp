@@ -17,8 +17,11 @@ uint64 Riscv::syscall(uint64* args) {
 
     switch(code) {
         case 1: {
-            uint64 size = args[1]; // * MEM_BLOCK_SIZE
-            ret = (uint64) KMemoryAllocator::getInstance().allocate(size);
+            ret = (uint64) KMemoryAllocator::getInstance().allocate(args[1]);
+            break;
+        }
+        case 2: {
+            ret = KMemoryAllocator::getInstance().free((void*)args[1]);
             break;
         }
         case 0x13: {
@@ -37,9 +40,12 @@ void Riscv::handleSupervisorTrap() {
 
     uint64 a1 = r_a1();
 
-    uint64 scause = r_scause();
+    const uint64 scause = r_scause(); //TODO kada citam scause ovde imam ogroman broj, a na GDB kada citam imam 9? za mem free
+    // printDebug("Scause pre: ", scause);
 
     w_a1(a1);
+
+    // printDebug("Scause posle: ", scause);
 
     if (scause == TIMER_INTERRUPT)
     {

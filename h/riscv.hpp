@@ -111,7 +111,7 @@ private:
 
 inline uint64 Riscv::r_scause()
 {
-    uint64 volatile scause;
+    uint64 scause;
     __asm__ volatile ("csrr %[scause], scause" : [scause] "=r"(scause));
     return scause;
 }
@@ -211,7 +211,12 @@ inline uint64 Riscv::r_a0() {
 inline uint64 Riscv::r_a1() {
     uint64 volatile a_ret;
 
-    __asm__ volatile ("mv %0, a1" : "=r"(a_ret));
+    __asm__ volatile (
+        "mv %0, a1"
+        : "=r"(a_ret)
+        :
+        : "a0", "a1", "a2", "a3", "a4", "a5"
+    );
     return a_ret;
 }
 
