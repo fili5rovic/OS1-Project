@@ -25,6 +25,7 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         }
         case 0x13: {
+            TCB::dispatch();
             break;
         }
         default:
@@ -41,11 +42,8 @@ void Riscv::handleSupervisorTrap() {
     uint64 a1 = r_a1();
 
     const uint64 scause = r_scause();
-    // printDebug("Scause pre: ", scause);
 
     w_a1(a1);
-
-    // printDebug("Scause posle: ", scause);
 
     if (scause == TIMER_INTERRUPT)
     {

@@ -5,7 +5,7 @@
 
 #include "../h/KMemoryAllocator.hpp"
 #include "../h/riscv.hpp"
-#include "../h/syscall_c.hpp"
+#include "../h/syscall_c.h"
 #include "../h/tcb.hpp"
 #include "../h/workers.hpp"
 
@@ -172,16 +172,16 @@ void threadTest() {
 
 
 int main() {
-    Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
 
+    threadTest();
 
-    uint64* addr = (uint64*) mem_alloc(sizeof(uint64));
-    *addr = 3;
-    printDebug("Value: ", *addr);
-
-    mem_free(addr);
-
-
-    print("Main finished...\n");
+    // Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
+    // uint64* addr = (uint64*) mem_alloc(sizeof(uint64));
+    // *addr = 3;
+    // printDebug("Value: ", *addr);
+    //
+    // mem_free(addr);
+    //
+    // print("Main finished...\n");
     return 0;
 }

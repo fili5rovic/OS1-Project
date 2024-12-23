@@ -1,4 +1,4 @@
-#include "../h/syscall_c.hpp"
+#include "../h/syscall_c.h"
 
 #include "../h/riscv.hpp"
 
@@ -29,4 +29,9 @@ int mem_free(void* ptr) {
     __asm__ volatile("mv %0, a0" : "=r"(ret));
     return ret;
 
+}
+
+void thread_dispatch() {
+    __asm__ volatile("li a0, 0x14"); // 13 should be here
+    __asm__ volatile("ecall");
 }
