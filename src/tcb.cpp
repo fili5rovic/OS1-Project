@@ -5,8 +5,8 @@ TCB *TCB::running = nullptr;
 
 uint64 TCB::timeSliceCounter = 0;
 
-TCB *TCB::createThread(Body body) {
-    return new TCB(body, TIME_SLICE);
+TCB *TCB::createThread(Body body, void* arg) {
+    return new TCB(body, TIME_SLICE, arg);
 }
 
 void TCB::yield() {
@@ -26,7 +26,7 @@ void TCB::dispatch()
 void TCB::threadWrapper()
 {
     Riscv::popSppSpie();
-    running->body();
+    running->body(running->arg);
     running->setFinished(true);
     TCB::yield();
 }

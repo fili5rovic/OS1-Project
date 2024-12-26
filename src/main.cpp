@@ -9,6 +9,8 @@
 #include "../h/tcb.hpp"
 #include "../h/workers.hpp"
 
+#include "../h/Threads_C_API_test.hpp"
+
 
 void test1() {
     void* a;
@@ -142,16 +144,16 @@ void testAllocatingAllMemory() {
 void threadTest() {
     TCB* threads[5];
 
-    threads[0] = TCB::createThread(nullptr);
+    threads[0] = TCB::createThread(nullptr, nullptr);
     TCB::running = threads[0];
 
-    threads[1] = TCB::createThread(workerBodyA);
+    threads[1] = TCB::createThread(workerBodyA, nullptr);
     print("ThreadA created\n");
-    threads[2] = TCB::createThread(workerBodyB);
+    threads[2] = TCB::createThread(workerBodyB, nullptr);
     print("ThreadB created\n");
-    threads[3] = TCB::createThread(workerBodyC);
+    threads[3] = TCB::createThread(workerBodyC, nullptr);
     print("ThreadC created\n");
-    threads[4] = TCB::createThread(workerBodyD);
+    threads[4] = TCB::createThread(workerBodyD, nullptr);
     print("ThreadD created\n");
 
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
@@ -161,7 +163,7 @@ void threadTest() {
              threads[2]->isFinished() &&
              threads[3]->isFinished() &&
              threads[4]->isFinished())) {
-        TCB::yield();
+        thread_dispatch();
              }
 
     for (auto &thread: threads) {
@@ -172,6 +174,11 @@ void threadTest() {
 
 
 int main() {
+    // Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
+    // Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+    // TCB* mainThread = TCB::createThread(nullptr, nullptr);
+    // TCB::running = mainThread;
+    // Threads_C_API_test();
 
     threadTest();
 

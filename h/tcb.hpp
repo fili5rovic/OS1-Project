@@ -22,9 +22,18 @@ public:
 
     uint64 getSP() {return running->context.sp;}
 
-    using Body = void (*)();
+    using Body = void (*)(void*);
 
-    static TCB *createThread(Body body);
+    static TCB *createThread(Body body, void* arg);
+
+    static uint64 thread_exit() {
+        if (running->finished == true) {
+            return -1;
+        }
+        running->setFinished(true);
+        dispatch();
+        return 0;
+    }
 
     static void yield();
 
@@ -33,14 +42,15 @@ public:
 
 
 private:
-    TCB(Body body, uint64 timeSlice) :
+    TCB(Body body, uint64 timeSlice, void* arg) :
             body(body),
             stack(body != nullptr ? new uint64[STACK_SIZE] : nullptr),
             context({(uint64) &threadWrapper,
                      stack != nullptr ? (uint64) &stack[STACK_SIZE] : 0
                     }),
             timeSlice(timeSlice),
-            finished(false)
+            finished(false),
+            arg(arg)
     {
         if (body != nullptr) { Scheduler::put(this); }
     }
@@ -56,6 +66,7 @@ private:
     Context context;
     uint64 timeSlice;
     bool finished;
+    void* arg;
 
     friend class Riscv;
 

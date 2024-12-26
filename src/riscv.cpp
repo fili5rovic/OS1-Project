@@ -24,6 +24,16 @@ uint64 Riscv::syscall(uint64* args) {
             ret = KMemoryAllocator::getInstance().free((void*)args[1]);
             break;
         }
+        case 0x11: {
+            using Body = void (*)(void*);
+            Body body = Body(args[1]);
+            void* arg = (void*)args[3];
+            ret = TCB::createThread(body, arg) == nullptr? 3:0;
+            break;
+        }
+        case 0x12:
+            ret = TCB::thread_exit();
+            break;
         case 0x13: {
             TCB::dispatch();
             break;
