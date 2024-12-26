@@ -148,6 +148,7 @@ void threadTest() {
     TCB::running = threads[0];
 
     threads[1] = TCB::createThread(workerBodyA, nullptr);
+    // thread_create(&threads[1], workerBodyA, nullptr);
     print("ThreadA created\n");
     threads[2] = TCB::createThread(workerBodyB, nullptr);
     print("ThreadB created\n");
@@ -155,9 +156,6 @@ void threadTest() {
     print("ThreadC created\n");
     threads[4] = TCB::createThread(workerBodyD, nullptr);
     print("ThreadD created\n");
-
-    Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
-    Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 
     while (!(threads[1]->isFinished() &&
              threads[2]->isFinished() &&
@@ -174,13 +172,15 @@ void threadTest() {
 
 
 int main() {
-    // Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
-    // Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
-    // TCB* mainThread = TCB::createThread(nullptr, nullptr);
-    // TCB::running = mainThread;
-    // Threads_C_API_test();
+    Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
+    Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
-    threadTest();
+
+    TCB* mainThread = TCB::createThread(nullptr, nullptr);
+    TCB::running = mainThread;
+    Threads_C_API_test();
+
+    // threadTest();
 
     // Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
     // uint64* addr = (uint64*) mem_alloc(sizeof(uint64));

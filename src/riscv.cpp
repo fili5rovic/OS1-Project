@@ -26,9 +26,11 @@ uint64 Riscv::syscall(uint64* args) {
         }
         case 0x11: {
             using Body = void (*)(void*);
-            Body body = Body(args[1]);
+            TCB** tcb = (TCB**) args[1];
+            Body body = Body(args[2]);
             void* arg = (void*)args[3];
-            ret = TCB::createThread(body, arg) == nullptr? 3:0;
+            *tcb = TCB::createThread(body, arg);
+            ret = *tcb == nullptr? 3:0;
             break;
         }
         case 0x12:
