@@ -19,6 +19,10 @@ void TCB::dispatch()
     TCB *old = running;
     if (!old->isFinished()) { Scheduler::put(old); }
     running = Scheduler::get();
+    if (!running) {
+        print("No runnable thread in dispatch.");
+        return;
+    }
 
     TCB::contextSwitch(&old->context, &running->context);
 }

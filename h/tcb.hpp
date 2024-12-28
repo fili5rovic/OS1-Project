@@ -52,7 +52,9 @@ private:
             finished(false),
             arg(arg)
     {
-        if (body != nullptr) { Scheduler::put(this); }
+        if (body != nullptr) {
+            Scheduler::put(this);
+        }
     }
 
     struct Context

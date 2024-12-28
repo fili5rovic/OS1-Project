@@ -170,25 +170,45 @@ void threadTest() {
     print("Finished\n");
 }
 
+void test() {
+    print("test");
+}
+
+void userMain() {
+    print("Hi\n");
+    TCB* testThread = TCB::createThread(reinterpret_cast<void (*)(void *)>(test), nullptr);
+    while(!testThread->isFinished()) {
+        thread_dispatch();
+    }
+
+    // Threads_C_API_test();
+}
+
 
 int main() {
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
-    Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
+    // Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
 
     TCB* mainThread = TCB::createThread(nullptr, nullptr);
     TCB::running = mainThread;
+
     Threads_C_API_test();
+
+    // TCB* userMainThread = TCB::createThread(reinterpret_cast<void (*)(void *)>(userMain), nullptr);
+    // while(!userMainThread->isFinished()) {
+    //     thread_dispatch();
+    // }
 
     // threadTest();
 
-    // Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
+
     // uint64* addr = (uint64*) mem_alloc(sizeof(uint64));
     // *addr = 3;
     // printDebug("Value: ", *addr);
     //
     // mem_free(addr);
-    //
-    // print("Main finished...\n");
+
+    print("Main finished...\n");
     return 0;
 }

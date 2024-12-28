@@ -80,6 +80,7 @@ void Riscv::handleSupervisorTrap() {
     else
     {
         printDebug("SCAUSE:", scause);
+        printDebug("SEPC:", r_sepc());
         // unexpected trap cause
     }
 
