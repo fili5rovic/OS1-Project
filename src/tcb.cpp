@@ -5,8 +5,10 @@ TCB *TCB::running = nullptr;
 
 uint64 TCB::timeSliceCounter = 0;
 
-TCB *TCB::createThread(Body body, void* arg) {
-    return new TCB(body, TIME_SLICE, arg);
+TCB *TCB::createThread(Body body, void* arg, void* stack) {
+    TCB* thread = new TCB(body, arg, stack);
+    Scheduler::put(thread);
+    return thread;
 }
 
 void TCB::yield() {

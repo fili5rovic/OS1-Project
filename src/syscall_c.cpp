@@ -35,6 +35,13 @@ int thread_create(thread_t* handle, void(* start_routine)(void*), void* arg) {
     if (!handle) { return -1; }
     if (!start_routine) { return -2; }
 
+    void* stack = mem_alloc(DEFAULT_STACK_SIZE);
+    if (!stack) {
+        return -3;
+    }
+
+
+    __asm__ volatile("mv a4, %0" : : "r"(stack));
     __asm__ volatile("mv a3, %0" : : "r"(arg));
     __asm__ volatile("mv a2, %0" : : "r"(start_routine));
     __asm__ volatile("mv a1, %0" : : "r"(handle));

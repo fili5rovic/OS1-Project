@@ -24,7 +24,7 @@ public:
 
     using Body = void (*)(void*);
 
-    static TCB *createThread(Body body, void* arg);
+    static TCB *createThread(Body body, void* arg, void* stack);
 
     static uint64 thread_exit() {
         if (running->finished == true) {
@@ -42,19 +42,19 @@ public:
 
 
 private:
-    TCB(Body body, uint64 timeSlice, void* arg) :
-            body(body),
-            stack(body != nullptr ? new uint64[STACK_SIZE] : nullptr),
-            context({(uint64) &threadWrapper,
-                     stack != nullptr ? (uint64) &stack[STACK_SIZE] : 0
-                    }),
-            timeSlice(timeSlice),
-            finished(false),
-            arg(arg)
+    TCB(Body body, void* arg, void* stack)
     {
-        if (body != nullptr) {
-            Scheduler::put(this);
-        }
+        printDebug("Stack: ", (uint64)stack);
+        printDebug("This: ", (uint64)this);
+        this->stack = (uint64*)stack;
+        this->body = body;
+        // this->stack = body != nullptr ? new uint64[STACK_SIZE] : nullptr;
+        this->context = {(uint64) &threadWrapper,
+                     this->stack != nullptr ? (uint64) &this->stack[STACK_SIZE] : 0
+                    };
+        this->timeSlice = TIME_SLICE;
+        this->finished = false;
+        this->arg = arg;
     }
 
     struct Context
@@ -75,9 +75,9 @@ private:
     static void threadWrapper();
 
     static void contextSwitch(Context *oldContext, Context *runningContext);
-
+public:
     static void dispatch();
-
+private:
     static uint64 timeSliceCounter;
 
     static uint64 constexpr STACK_SIZE = 1024;

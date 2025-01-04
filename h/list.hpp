@@ -18,19 +18,6 @@ private:
 
         Elem(T *data, Elem *next) : data(data), next(next) {}
 
-        void* operator new(size_t size) {
-            return KMemoryAllocator::getInstance().allocate(size);
-        }
-        void* operator new[](size_t size) {
-            return KMemoryAllocator::getInstance().allocate(size);
-        }
-
-        void operator delete(void *ptr) {
-            KMemoryAllocator::getInstance().free(ptr);
-        }
-        void operator delete[](void *ptr) {
-            KMemoryAllocator::getInstance().free(ptr);
-        }
     };
 
     Elem *head, *tail;

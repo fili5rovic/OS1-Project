@@ -5,17 +5,21 @@
 #include "../lib/mem.h"
 
 void* operator new(const uint64 n) {
-    return KMemoryAllocator::getInstance().allocate(n);
+    return __mem_alloc(n);
+    // return KMemoryAllocator::getInstance().allocate(n);
 }
 
 void* operator new[](const uint64 n) {
-    return KMemoryAllocator::getInstance().allocate(n);
+    return __mem_alloc(n);
+    // return KMemoryAllocator::getInstance().allocate(n);
 }
 
 void operator delete(void* p) noexcept {
-    KMemoryAllocator::getInstance().free(p);
+    __mem_free(p);
+    // KMemoryAllocator::getInstance().free(p);
 }
 
 void operator delete[](void* p) noexcept {
-    KMemoryAllocator::getInstance().free(p);
+    __mem_free(p);
+    // KMemoryAllocator::getInstance().free(p);
 }

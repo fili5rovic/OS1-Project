@@ -5,6 +5,7 @@
 #include "../h/riscv.hpp"
 #include "../h/tcb.hpp"
 #include "../lib/console.h"
+#include "../lib/mem.h"
 
 void Riscv::popSppSpie() {
     __asm__ volatile("csrw sepc, ra");
@@ -17,7 +18,8 @@ uint64 Riscv::syscall(uint64* args) {
 
     switch(code) {
         case 1: {
-            ret = (uint64) KMemoryAllocator::getInstance().allocate(args[1]);
+            ret = (uint64)__mem_alloc(args[1]);
+            // ret = (uint64) KMemoryAllocator::getInstance().allocate(args[1]);
             break;
         }
         case 2: {
@@ -29,7 +31,8 @@ uint64 Riscv::syscall(uint64* args) {
             TCB** tcb = (TCB**) args[1];
             Body body = Body(args[2]);
             void* arg = (void*)args[3];
-            *tcb = TCB::createThread(body, arg);
+            void* stack = (void*)args[4];
+            *tcb = TCB::createThread(body, arg,stack);
             ret = *tcb == nullptr? 3:0;
             break;
         }
@@ -79,9 +82,16 @@ void Riscv::handleSupervisorTrap() {
     }
     else
     {
-        printDebug("SCAUSE:", scause);
-        printDebug("SEPC:", r_sepc());
-        // unexpected trap cause
+        print("\n---- ERROR ----\n");
+        printDebug("scause: ", scause);
+        printDebug("sepc: ", r_sepc());
+        printDebug("stval: ", r_stval());
+        print("---------------\n");
+
+        // STOP Emulator
+        __asm__ volatile("li t0, 0x5555");
+        __asm__ volatile("li t1, 0x100000");
+        __asm__ volatile("sw t0, 0(t1)");
     }
 
 }
