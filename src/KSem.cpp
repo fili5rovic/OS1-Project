@@ -25,7 +25,16 @@ int KSem::wait() {
     if (int(val) <= 0) {
         block();
     }
+    // closed check after dispatching
+    if (closed)
+        return -1;
     return 0;
+}
+
+int KSem::trywait() {
+    if (closed)
+        return -1;
+    return val>0;
 }
 
 int KSem::close() {
@@ -47,7 +56,6 @@ void KSem::block() {
     TCB::running->setBlocked(true);
     this->blocked.addLast(TCB::running);
     thread_dispatch();
-    // also check here if closed
 }
 
 void KSem::unblock() {

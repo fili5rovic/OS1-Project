@@ -6,6 +6,7 @@
 #include "../h/tcb.hpp"
 #include "../lib/console.h"
 #include "../lib/mem.h"
+#include "../h/KSem.hpp"
 
 void Riscv::popSppSpie() {
     __asm__ volatile("csrw sepc, ra");
@@ -16,24 +17,24 @@ uint64 Riscv::syscall(uint64* args) {
     uint64 ret = 0;
     uint64 code = args[0];
 
-    switch(code) {
+    switch (code) {
         case 1: {
-            ret = (uint64)__mem_alloc(args[1]);
+            ret = (uint64) __mem_alloc(args[1]);
             // ret = (uint64) KMemoryAllocator::getInstance().allocate(args[1]);
             break;
         }
         case 2: {
-            ret = KMemoryAllocator::getInstance().free((void*)args[1]);
+            ret = KMemoryAllocator::getInstance().free((void*) args[1]);
             break;
         }
         case 0x11: {
             using Body = void (*)(void*);
             TCB** tcb = (TCB**) args[1];
             Body body = Body(args[2]);
-            void* arg = (void*)args[3];
-            void* stack = (void*)args[4];
-            *tcb = TCB::createThread(body, arg,stack);
-            ret = *tcb == nullptr? 3:0;
+            void* arg = (void*) args[3];
+            void* stack = (void*) args[4];
+            *tcb = TCB::createThread(body, arg, stack);
+            ret = *tcb == nullptr ? 3 : 0;
             break;
         }
         case 0x12:
@@ -41,6 +42,33 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         case 0x13: {
             TCB::dispatch();
+            break;
+        }
+        case 0x21: {
+            uint64 val = args[2];
+            KSem** sem = (KSem**) args[1];
+            *sem = KSem::create(val);
+            ret = *sem == nullptr ? 2 : 0;
+            break;
+        }
+        case 0x22: {
+            KSem* sem = (KSem*) args[1];
+            ret = sem->close();
+            break;
+        }
+        case 0x23: {
+            KSem* sem = (KSem*) args[1];
+            ret = sem->wait();
+            break;
+        }
+        case 0x24: {
+            KSem* sem = (KSem*) args[1];
+            ret = sem->signal();
+            break;
+        }
+        case 0x25: {
+            KSem* sem = (KSem*) args[1];
+            ret = sem->trywait();
             break;
         }
         default:
@@ -60,16 +88,11 @@ void Riscv::handleSupervisorTrap() {
 
     w_a1(a1);
 
-    if (scause == TIMER_INTERRUPT)
-    {
+    if (scause == TIMER_INTERRUPT) {
         handleTimerInterrupt();
-    }
-    else if (scause == CONSOLE_INTERRUPT)
-    {
+    } else if (scause == CONSOLE_INTERRUPT) {
         handleConsoleInterrupt();
-    }
-    else if (scause == USER_INTERRUPT || scause == SYSTEM_INTERRUPT)
-    {
+    } else if (scause == USER_INTERRUPT || scause == SYSTEM_INTERRUPT) {
         // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
         uint64 volatile sepc = r_sepc() + 4;
         uint64 volatile sstatus = r_sstatus();
@@ -79,9 +102,7 @@ void Riscv::handleSupervisorTrap() {
 
         w_sstatus(sstatus);
         w_sepc(sepc);
-    }
-    else
-    {
+    } else {
         print("\n---- ERROR ----\n");
         printDebug("scause: ", scause);
         printDebug("sepc: ", r_sepc());
@@ -93,7 +114,6 @@ void Riscv::handleSupervisorTrap() {
         __asm__ volatile("li t1, 0x100000");
         __asm__ volatile("sw t0, 0(t1)");
     }
-
 }
 
 
@@ -106,8 +126,7 @@ void Riscv::handleTimerInterrupt() {
     // interrupt: yes; cause code: supervisor software interrupt (CLINT; machine timer interrupt)
     mc_sip(SIP_SSIP);
     TCB::timeSliceCounter++;
-    if (TCB::timeSliceCounter >= TCB::running->getTimeSlice())
-    {
+    if (TCB::timeSliceCounter >= TCB::running->getTimeSlice()) {
         uint64 volatile sepc = r_sepc();
         uint64 volatile sstatus = r_sstatus();
 

@@ -64,13 +64,13 @@ KSem* sem;
 
 void consumer(void* arg) {
     print("Started consumer\n");
-    sem->wait();
+    sem_wait(sem);
     print("Finished consumer\n");
 
 }
 void producer(void* arg) {
     print("Started producer\n");
-    sem->signal();
+    sem_signal(sem);
     print("Finished producer\n");
 }
 
@@ -78,7 +78,7 @@ int main() {
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
     // Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
-    sem = KSem::create();
+    sem_open(&sem,1);
 
     TCB* mainThread = TCB::createThread(nullptr, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
     TCB::running = mainThread;
@@ -87,12 +87,10 @@ int main() {
     TCB* producerThread = TCB::createThread(producer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
 
     while (!(consumerThread->isFinished() && producerThread->isFinished())) {
-        print("DISPATCH\n");
         thread_dispatch();
     }
 
-    print("Closing semaphore..\n");
-    sem->close();
+    sem_close(sem);
 
     // TCB* userMainThread = TCB::createThread(userMain, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
     // while(!userMainThread->isFinished()) {

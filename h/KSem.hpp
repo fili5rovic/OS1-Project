@@ -15,6 +15,8 @@ public:
 
     int wait();
 
+    int trywait();
+
     int close();
 
 private:
