@@ -7,7 +7,7 @@
 #include "../h/riscv.hpp"
 #include "../h/syscall_c.h"
 #include "../h/tcb.hpp"
-#include "../h/workers.hpp"
+#include "../h/KSem.hpp"
 
 #include "../h/Threads_C_API_test.hpp"
 
@@ -60,30 +60,45 @@ void userMain(void* arg) {
     Threads_C_API_test();
 }
 
+KSem* sem;
+
+void consumer(void* arg) {
+    print("Started consumer\n");
+    sem->wait();
+    print("Finished consumer\n");
+
+}
+void producer(void* arg) {
+    print("Started producer\n");
+    sem->signal();
+    print("Finished producer\n");
+}
 
 int main() {
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
-    Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
+    // Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
+    sem = KSem::create();
 
     TCB* mainThread = TCB::createThread(nullptr, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
     TCB::running = mainThread;
 
-    // Threads_C_API_test();
+    TCB* consumerThread = TCB::createThread(consumer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    TCB* producerThread = TCB::createThread(producer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
 
-    TCB* userMainThread = TCB::createThread(userMain, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
-    while(!userMainThread->isFinished()) {
+    while (!(consumerThread->isFinished() && producerThread->isFinished())) {
+        print("DISPATCH\n");
         thread_dispatch();
     }
 
-    // threadTest();
+    print("Closing semaphore..\n");
+    sem->close();
 
+    // TCB* userMainThread = TCB::createThread(userMain, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
+    // while(!userMainThread->isFinished()) {
+    //     thread_dispatch();
+    // }
 
-    // uint64* addr = (uint64*) mem_alloc(sizeof(uint64));
-    // *addr = 3;
-    // printDebug("Value: ", *addr);
-    //
-    // mem_free(addr);
 
     print("Main finished...\n");
     return 0;

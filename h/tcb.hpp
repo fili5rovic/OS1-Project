@@ -16,6 +16,8 @@ public:
 
     bool isFinished() const { return finished; }
 
+    bool isBlocked() const { return blocked; }
+
     void setFinished(bool value) { finished = value; }
 
     uint64 getTimeSlice() const { return timeSlice; }
@@ -35,6 +37,10 @@ public:
         return 0;
     }
 
+    void setBlocked(const bool blocked) {
+        this->blocked = blocked;
+    }
+
     static void yield();
 
     static TCB *running;
@@ -44,8 +50,6 @@ public:
 private:
     TCB(Body body, void* arg, void* stack)
     {
-        printDebug("Stack: ", (uint64)stack);
-        printDebug("This: ", (uint64)this);
         this->stack = (uint64*)stack;
         this->body = body;
         // this->stack = body != nullptr ? new uint64[STACK_SIZE] : nullptr;
@@ -55,6 +59,7 @@ private:
         this->timeSlice = TIME_SLICE;
         this->finished = false;
         this->arg = arg;
+        this->blocked = false;
     }
 
     struct Context
@@ -70,6 +75,7 @@ private:
     bool finished;
     void* arg;
 
+    bool blocked;
     friend class Riscv;
 
     static void threadWrapper();

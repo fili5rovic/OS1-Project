@@ -1,47 +1,30 @@
-//
-// Created by os on 1/4/25.
-//
-
 #ifndef KSEM_H
 #define KSEM_H
 
 #include "../lib/hw.h"
+#include "../h/list.hpp"
+#include "../h/tcb.hpp"
 
 class KSem {
 public:
-    explicit KSem(const uint64 v = 1) : val(v), closed(false) {}
+    explicit KSem(const uint64 v) : val(v), closed(false) {}
 
-    void operator++(int) {
-        if (val == 0) {
-            unblock();
-        }
-        val++;
-    }
+    static KSem* create(uint64 v = 1);
 
-    void operator--(int) {
-        val--;
-        if (val == 0) {
-            block();
-        }
-    }
+    int signal();
 
-    void close() {
-        closed = true;
-        // unblock every thread
-    }
+    int wait();
+
+    int close();
 
 private:
     uint64 val;
     bool closed;
+    List<TCB> blocked;
 
-    void block() {
+    void block();
 
-    }
-
-    void unblock() {
-
-    }
-
+    void unblock();
 };
 
 #endif //KSEM_H

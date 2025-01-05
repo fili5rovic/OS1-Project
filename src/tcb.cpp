@@ -19,7 +19,7 @@ void TCB::yield() {
 void TCB::dispatch()
 {
     TCB *old = running;
-    if (!old->isFinished()) { Scheduler::put(old); }
+    if (!old->isFinished() && !old->isBlocked()) { Scheduler::put(old); }
     running = Scheduler::get();
     if (!running) {
         print("No runnable thread in dispatch.");
