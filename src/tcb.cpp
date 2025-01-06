@@ -5,9 +5,18 @@ TCB *TCB::running = nullptr;
 
 uint64 TCB::timeSliceCounter = 0;
 
+void TCB::startTCB(TCB* tcb) {
+    Scheduler::put(tcb);
+}
+
 TCB *TCB::createThread(Body body, void* arg, void* stack) {
     TCB* thread = new TCB(body, arg, stack);
     Scheduler::put(thread);
+    return thread;
+}
+
+TCB* TCB::createThreadNoStart(Body body, void* arg, void* stack) {
+    TCB* thread = new TCB(body, arg, stack);
     return thread;
 }
 

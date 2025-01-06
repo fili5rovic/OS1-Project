@@ -8,8 +8,10 @@
 #include "../h/syscall_c.h"
 #include "../h/tcb.hpp"
 #include "../h/KSem.hpp"
+#include "../h/syscall_cpp.hpp"
 
 #include "../h/Threads_C_API_test.hpp"
+#include "../h/Threads_CPP_API_test.hpp"
 
 #include "../lib/mem.h"
 
@@ -42,22 +44,9 @@
 //     print("Finished\n");
 // }
 
-void test(void* arg) {
-    print("test\n");
-}
-
 void userMain(void* arg) {
     // print("Hi\n");
-    void* stack = __mem_alloc(DEFAULT_STACK_SIZE * sizeof(uint64*));
-    if (!stack) {
-        print("Failed to allocate stack\n");
-    }
-    TCB* testThread = TCB::createThread(test, nullptr, stack);
-    while(!testThread->isFinished()) {
-        thread_dispatch();
-    }
-
-    Threads_C_API_test();
+    Threads_CPP_API_test();
 }
 
 KSem* sem;
@@ -78,24 +67,24 @@ int main() {
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
     // Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
-    sem_open(&sem,1);
-
+    // sem_open(&sem,1);
+    //
     TCB* mainThread = TCB::createThread(nullptr, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
     TCB::running = mainThread;
-
-    TCB* consumerThread = TCB::createThread(consumer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
-    TCB* producerThread = TCB::createThread(producer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
-
-    while (!(consumerThread->isFinished() && producerThread->isFinished())) {
-        thread_dispatch();
-    }
-
-    sem_close(sem);
-
-    // TCB* userMainThread = TCB::createThread(userMain, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
-    // while(!userMainThread->isFinished()) {
+    //
+    // TCB* consumerThread = TCB::createThread(consumer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    // TCB* producerThread = TCB::createThread(producer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    //
+    // while (!(consumerThread->isFinished() && producerThread->isFinished())) {
     //     thread_dispatch();
     // }
+    //
+    // sem_close(sem);
+
+    TCB* userMainThread = TCB::createThread(userMain, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
+    while(!userMainThread->isFinished()) {
+        thread_dispatch();
+    }
 
 
     print("Main finished...\n");

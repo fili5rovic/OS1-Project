@@ -17,6 +17,10 @@ typedef TCB* thread_t;
 
 int thread_create (thread_t* handle, void(*start_routine)(void*), void* arg);
 
+int thread_start(TCB* tcb);
+
+int thread_create_no_start (thread_t* handle, void(*start_routine)(void*), void* arg);
+
 int thread_exit();
 
 void thread_dispatch();

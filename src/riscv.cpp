@@ -18,16 +18,22 @@ uint64 Riscv::syscall(uint64* args) {
     uint64 code = args[0];
 
     switch (code) {
-        case 1: {
+        case MEM_ALLOC: {
             ret = (uint64) __mem_alloc(args[1]);
             // ret = (uint64) KMemoryAllocator::getInstance().allocate(args[1]);
             break;
         }
-        case 2: {
+        case MEM_FREE: {
             ret = KMemoryAllocator::getInstance().free((void*) args[1]);
             break;
         }
-        case 0x11: {
+        case THREAD_START: {
+            TCB* tcb = (TCB*) args[1];
+            TCB::startTCB(tcb);
+            ret = 0;
+            break;
+        }
+        case THREAD_CREATE: {
             using Body = void (*)(void*);
             TCB** tcb = (TCB**) args[1];
             Body body = Body(args[2]);
@@ -36,37 +42,46 @@ uint64 Riscv::syscall(uint64* args) {
             *tcb = TCB::createThread(body, arg, stack);
             ret = *tcb == nullptr ? 3 : 0;
             break;
+        } case THREAD_CREATE_NO_START: {
+            using Body = void (*)(void*);
+            TCB** tcb = (TCB**) args[1];
+            Body body = Body(args[2]);
+            void* arg = (void*) args[3];
+            void* stack = (void*) args[4];
+            *tcb = TCB::createThreadNoStart(body, arg, stack);
+            ret = *tcb == nullptr ? 3 : 0;
+            break;
         }
-        case 0x12:
+        case THREAD_EXIT:
             ret = TCB::thread_exit();
             break;
-        case 0x13: {
+        case THREAD_DISPATCH: {
             TCB::dispatch();
             break;
         }
-        case 0x21: {
+        case SEM_OPEN: {
             uint64 val = args[2];
             KSem** sem = (KSem**) args[1];
             *sem = KSem::create(val);
             ret = *sem == nullptr ? 2 : 0;
             break;
         }
-        case 0x22: {
+        case SEM_CLOSE: {
             KSem* sem = (KSem*) args[1];
             ret = sem->close();
             break;
         }
-        case 0x23: {
+        case SEM_WAIT: {
             KSem* sem = (KSem*) args[1];
             ret = sem->wait();
             break;
         }
-        case 0x24: {
+        case SEM_SIGNAL: {
             KSem* sem = (KSem*) args[1];
             ret = sem->signal();
             break;
         }
-        case 0x25: {
+        case SEM_TIMEDWAIT: {
             KSem* sem = (KSem*) args[1];
             ret = sem->trywait();
             break;

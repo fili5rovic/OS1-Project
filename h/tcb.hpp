@@ -26,7 +26,11 @@ public:
 
     using Body = void (*)(void*);
 
+    static void startTCB(TCB* tcb);
+
     static TCB *createThread(Body body, void* arg, void* stack);
+
+    static TCB *createThreadNoStart(Body body, void* arg, void* stack);
 
     static uint64 thread_exit() {
         if (running->finished == true) {
