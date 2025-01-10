@@ -25,6 +25,8 @@ int thread_exit();
 
 void thread_dispatch();
 
+int time_sleep(time_t t);
+
 /**
  * Semaphore
  */
@@ -44,12 +46,8 @@ int sem_trywait(sem_t id);
  * Console
  */
 
-inline char getc() {
-    return __getc();
-}
+char getc();
 
-inline void putc(char c) {
-    __putc(c);
-}
+void putc(char c);
 
 #endif

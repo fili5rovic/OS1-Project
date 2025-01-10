@@ -9,6 +9,10 @@
 #include "../h/KSem.hpp"
 
 void Riscv::popSppSpie() {
+    // if(TCB::running->getPrivilege() == TCB::SUPERVISOR)
+    //     Riscv::ms_sstatus(Riscv::SSTATUS_SPP);
+    // else
+    //     Riscv::mc_sstatus(Riscv::SSTATUS_SPP);
     __asm__ volatile("csrw sepc, ra");
     __asm__ volatile("sret");
 }
@@ -24,7 +28,8 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         }
         case MEM_FREE: {
-            ret = KMemoryAllocator::getInstance().free((void*) args[1]);
+            // ret = KMemoryAllocator::getInstance().free((void*) args[1]);
+            ret = (uint64) __mem_free(args);
             break;
         }
         case THREAD_START: {
@@ -87,6 +92,7 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         }
         default:
+            print("WRONG Code");
             break;
     }
 

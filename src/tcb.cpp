@@ -40,6 +40,7 @@ void TCB::dispatch()
 
 void TCB::threadWrapper()
 {
+
     Riscv::popSppSpie();
     running->body(running->arg);
     running->setFinished(true);

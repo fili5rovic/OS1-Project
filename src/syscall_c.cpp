@@ -97,6 +97,8 @@ void thread_dispatch() {
     __asm__ volatile("ecall");
 }
 
+int time_sleep(time_t t) { return 0;}
+
 int sem_open(sem_t* handle, unsigned init) {
     if (!handle) { return -1; }
 
@@ -161,4 +163,12 @@ int sem_trywait(sem_t id) {
     uint64 ret;
     __asm__ volatile("mv %0, a0" : "=r"(ret));
     return ret;
+}
+
+char getc() {
+    return __getc();
+}
+
+void putc(char c) {
+    __putc(c);
 }

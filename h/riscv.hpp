@@ -93,6 +93,9 @@ public:
         SEM_WAIT = 0x23,
         SEM_SIGNAL = 0x24,
         SEM_TIMEDWAIT = 0x25,
+
+        GETC = 0x41,
+        PUTC = 0x42
     };
 
     // mask set register sstatus
@@ -115,9 +118,9 @@ private:
     // supervisor trap handler
     static void handleSupervisorTrap();
 
-    static void handleConsoleInterrupt(); // inline?
+    static void handleConsoleInterrupt();
 
-    static void handleTimerInterrupt();  // inline?
+    static void handleTimerInterrupt();
 
     static void loadParams(uint64*);
 
@@ -198,12 +201,12 @@ inline void Riscv::w_sip(uint64 sip)
 
 inline void Riscv::ms_sstatus(uint64 mask)
 {
-    __asm__ volatile ("csrs sstatus, %[mask]" : : [mask] "r"(mask));
+    __asm__ volatile("csrs sstatus, %0" : : "r"(mask));
 }
 
 inline void Riscv::mc_sstatus(uint64 mask)
 {
-    __asm__ volatile ("csrc sstatus, %[mask]" : : [mask] "r"(mask));
+    __asm__ volatile("csrc sstatus, %0" : : "r"(mask));
 }
 
 inline uint64 Riscv::r_sstatus()

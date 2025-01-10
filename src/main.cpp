@@ -8,12 +8,6 @@
 #include "../h/syscall_c.h"
 #include "../h/tcb.hpp"
 #include "../h/KSem.hpp"
-#include "../h/syscall_cpp.hpp"
-
-#include "../h/Threads_C_API_test.hpp"
-#include "../h/Threads_CPP_API_test.hpp"
-
-#include "../lib/mem.h"
 
 // void threadTest() {
 //     TCB* threads[5];
@@ -44,10 +38,7 @@
 //     print("Finished\n");
 // }
 
-void userMain(void* arg) {
-    // print("Hi\n");
-    Threads_CPP_API_test();
-}
+extern void userMain();
 
 KSem* sem;
 
@@ -63,14 +54,19 @@ void producer(void* arg) {
     print("Finished producer\n");
 }
 
+TCB* kernel;
+TCB* user;
+
 int main() {
+    // Riscv::mc_sstatus(Riscv::SSTATUS_SPP);
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
     // Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
     // sem_open(&sem,1);
     //
-    TCB* mainThread = TCB::createThread(nullptr, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
-    TCB::running = mainThread;
+    kernel = TCB::createThread(nullptr, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
+    kernel->setPrivilege(TCB::SUPERVISOR);
+    TCB::running = kernel;
 
     // TCB* consumerThread = TCB::createThread(consumer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
     // TCB* producerThread = TCB::createThread(producer, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
@@ -80,13 +76,12 @@ int main() {
     // }
     //
     // sem_close(sem);
-
-    TCB* userMainThread = TCB::createThread(userMain, nullptr,mem_alloc(DEFAULT_STACK_SIZE));
-    while(!userMainThread->isFinished()) {
+    user = TCB::createThread(reinterpret_cast<void (*)(void *)>(userMain), nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    while(!user->isFinished()) {
         thread_dispatch();
     }
 
 
-    print("Main finished...\n");
+    // print("Main finished...\n");
     return 0;
 }

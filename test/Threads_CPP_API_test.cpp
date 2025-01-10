@@ -1,6 +1,6 @@
 #include "../h/syscall_cpp.hpp"
 
-#include "../h/print.hpp"
+#include "printing.hpp"
 
 static volatile bool finishedA = false;
 static volatile bool finishedB = false;
@@ -55,25 +55,25 @@ public:
 
 void WorkerA::workerBodyA(void *arg) {
     for (uint64 i = 0; i < 10; i++) {
-        print("A: i="); printInt(i); print("\n");
+        printString("A: i="); printInt(i); printString("\n");
         for (uint64 j = 0; j < 10000; j++) {
             for (uint64 k = 0; k < 30000; k++) { /* busy wait */ }
             thread_dispatch();
         }
     }
-    print("A finished!\n");
+    printString("A finished!\n");
     finishedA = true;
 }
 
 void WorkerB::workerBodyB(void *arg) {
     for (uint64 i = 0; i < 16; i++) {
-        print("B: i="); printInt(i); print("\n");
+        printString("B: i="); printInt(i); printString("\n");
         for (uint64 j = 0; j < 10000; j++) {
             for (uint64 k = 0; k < 30000; k++) { /* busy wait */ }
             thread_dispatch();
         }
     }
-    print("B finished!\n");
+    printString("B finished!\n");
     finishedB = true;
     thread_dispatch();
 }
@@ -81,26 +81,26 @@ void WorkerB::workerBodyB(void *arg) {
 void WorkerC::workerBodyC(void *arg) {
     uint8 i = 0;
     for (; i < 3; i++) {
-        print("C: i="); printInt(i); print("\n");
+        printString("C: i="); printInt(i); printString("\n");
     }
 
-    print("C: dispatch\n");
+    printString("C: dispatch\n");
     __asm__ ("li t1, 7");
     thread_dispatch();
 
     uint64 t1 = 0;
     __asm__ ("mv %[t1], t1" : [t1] "=r"(t1));
 
-    print("C: t1="); printInt(t1); print("\n");
+    printString("C: t1="); printInt(t1); printString("\n");
 
     uint64 result = fibonacci(12);
-    print("C: fibonaci="); printInt(result); print("\n");
+    printString("C: fibonaci="); printInt(result); printString("\n");
 
     for (; i < 6; i++) {
-        print("C: i="); printInt(i); print("\n");
+        printString("C: i="); printInt(i); printString("\n");
     }
 
-    print("A finished!\n");
+    printString("A finished!\n");
     finishedC = true;
     thread_dispatch();
 }
@@ -108,21 +108,21 @@ void WorkerC::workerBodyC(void *arg) {
 void WorkerD::workerBodyD(void* arg) {
     uint8 i = 10;
     for (; i < 13; i++) {
-        print("D: i="); printInt(i); print("\n");
+        printString("D: i="); printInt(i); printString("\n");
     }
 
-    print("D: dispatch\n");
+    printString("D: dispatch\n");
     __asm__ ("li t1, 5");
     thread_dispatch();
 
     uint64 result = fibonacci(16);
-    print("D: fibonaci="); printInt(result); print("\n");
+    printString("D: fibonaci="); printInt(result); printString("\n");
 
     for (; i < 16; i++) {
-        print("D: i="); printInt(i); print("\n");
+        printString("D: i="); printInt(i); printString("\n");
     }
 
-    print("D finished!\n");
+    printString("D finished!\n");
     finishedD = true;
     thread_dispatch();
 }
@@ -132,16 +132,16 @@ void Threads_CPP_API_test() {
     Thread* threads[4];
 
     threads[0] = new WorkerA();
-    print("ThreadA created\n");
+    printString("ThreadA created\n");
 
     threads[1] = new WorkerB();
-    print("ThreadB created\n");
+    printString("ThreadB created\n");
 
     threads[2] = new WorkerC();
-    print("ThreadC created\n");
+    printString("ThreadC created\n");
 
     threads[3] = new WorkerD();
-    print("ThreadD created\n");
+    printString("ThreadD created\n");
 
     for(int i=0; i<4; i++) {
         threads[i]->start();

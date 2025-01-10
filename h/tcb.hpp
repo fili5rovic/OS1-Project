@@ -49,13 +49,23 @@ public:
 
     static TCB *running;
 
+    enum Privilege {USER,SUPERVISOR};
 
+    void setPrivilege(const Privilege privilege) {
+        this->privilege = privilege;
+    }
+
+    Privilege getPrivilege() {
+        return this->privilege;
+    }
 
 private:
     TCB(Body body, void* arg, void* stack)
     {
+
         this->stack = (uint64*)stack;
         this->body = body;
+        this->privilege = USER;
         // this->stack = body != nullptr ? new uint64[STACK_SIZE] : nullptr;
         this->context = {(uint64) &threadWrapper,
                      this->stack != nullptr ? (uint64) &this->stack[STACK_SIZE] : 0
@@ -64,6 +74,7 @@ private:
         this->finished = false;
         this->arg = arg;
         this->blocked = false;
+
     }
 
     struct Context
@@ -78,6 +89,7 @@ private:
     uint64 timeSlice;
     bool finished;
     void* arg;
+    Privilege privilege;
 
     bool blocked;
     friend class Riscv;

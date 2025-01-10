@@ -10,8 +10,8 @@
 
 // Inline implementation of printInt
 inline void printInt(uint64 n) {
-    uint64 sstatus = Riscv::r_sstatus();
-    Riscv::mc_sstatus(Riscv::SSTATUS_SIE);
+    // uint64 sstatus = Riscv::r_sstatus();
+    // Riscv::mc_sstatus(Riscv::SSTATUS_SIE);
 
     char buffer[20];
     int index = 0;
@@ -25,7 +25,7 @@ inline void printInt(uint64 n) {
         __putc(buffer[index]);
     }
 
-    Riscv::ms_sstatus(sstatus & Riscv::SSTATUS_SIE ? Riscv::SSTATUS_SIE : 0);
+    // Riscv::ms_sstatus(sstatus & Riscv::SSTATUS_SIE ? Riscv::SSTATUS_SIE : 0);
 }
 
 // Inline implementation of printNewLine
@@ -35,14 +35,14 @@ inline void printNewLine() {
 
 // Inline implementation of print
 inline void print(const char* s) {
-    uint64 sstatus = Riscv::r_sstatus();
-    Riscv::mc_sstatus(Riscv::SSTATUS_SIE);
+    // uint64 sstatus = Riscv::r_sstatus();
+    // Riscv::mc_sstatus(Riscv::SSTATUS_SIE);
 
     for (; *s != '\0'; s++) {
         __putc(*s);
     }
 
-    Riscv::ms_sstatus(sstatus & Riscv::SSTATUS_SIE ? Riscv::SSTATUS_SIE : 0);
+    // Riscv::ms_sstatus(sstatus & Riscv::SSTATUS_SIE ? Riscv::SSTATUS_SIE : 0);
 }
 
 // Inline implementation of printDebug
