@@ -65,7 +65,7 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         }
         case SEM_OPEN: {
-            uint64 val = args[2];
+            int val = (int)args[2];
             KSem** sem = (KSem**) args[1];
             *sem = KSem::create(val);
             ret = *sem == nullptr ? 2 : 0;

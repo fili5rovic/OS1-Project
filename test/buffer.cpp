@@ -27,9 +27,13 @@ Buffer::~Buffer() {
 }
 
 void Buffer::put(int val) {
+//    print("Waiting for space\n");
     sem_wait(spaceAvailable);
+//    print("Waiting for mutex\n");
 
     sem_wait(mutexTail);
+//    printDebug("Put: ", val);
+//    printDebug("Cap: ", cap);
     buffer[tail] = val;
     tail = (tail + 1) % cap;
     sem_signal(mutexTail);

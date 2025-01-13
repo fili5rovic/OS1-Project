@@ -7,9 +7,9 @@
 
 class KSem {
 public:
-    explicit KSem(const uint64 v) : val(v), closed(false) {}
+    explicit KSem(const int v) : val(v), closed(false){}
 
-    static KSem* create(uint64 v = 1);
+    static KSem* create(int v = 1);
 
     int signal();
 
@@ -20,7 +20,7 @@ public:
     int close();
 
 private:
-    uint64 val;
+    int val;
     bool closed;
     List<TCB> blocked;
 

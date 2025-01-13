@@ -1,8 +1,7 @@
 
-#include "../h/syscall_c.h"
-#include "../h/print.hpp"
-#include "buffer.hpp"
+#include "../h/syscall_c.hpp"
 
+#include "buffer.hpp"
 
 static sem_t waitForAll;
 
@@ -15,22 +14,18 @@ struct thread_data {
 static volatile int threadEnd = 0;
 
 static void producerKeyboard(void *arg) {
-    printString("START producerKeyboard\n");
     struct thread_data *data = (struct thread_data *) arg;
 
     int key;
     int i = 0;
-    while ((key = getc()) != 0x1b) {
-        printDebug("Key: ",key);
+    while ((key = getc()) != 'A') {
         data->buffer->put(key);
         i++;
 
         if (i % (10 * data->id) == 0) {
-            printString("DISPATCH\n");
             thread_dispatch();
         }
     }
-    printString("END producerKeyboard\n");
 
     threadEnd = 1;
     data->buffer->put('!');
@@ -39,7 +34,6 @@ static void producerKeyboard(void *arg) {
 }
 
 static void producer(void *arg) {
-    printString("START producer\n");
     struct thread_data *data = (struct thread_data *) arg;
 
     int i = 0;
@@ -51,13 +45,11 @@ static void producer(void *arg) {
             thread_dispatch();
         }
     }
-    printString("END producer\n");
 
     sem_signal(data->wait);
 }
 
 static void consumer(void *arg) {
-    printString("START consumer\n");
     struct thread_data *data = (struct thread_data *) arg;
 
     int i = 0;
@@ -80,7 +72,7 @@ static void consumer(void *arg) {
         int key = data->buffer->get();
         putc(key);
     }
-    printString("END consumer\n");
+
     sem_signal(data->wait);
 }
 

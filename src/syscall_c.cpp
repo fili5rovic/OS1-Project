@@ -1,4 +1,4 @@
-#include "../h/syscall_c.h"
+#include "../h/syscall_c.hpp"
 
 #include "../h/riscv.hpp"
 

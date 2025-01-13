@@ -1,7 +1,7 @@
 #ifndef SYSCALL_CPP_H
 #define SYSCALL_CPP_H
 
-#include "syscall_c.h"
+#include "syscall_c.hpp"
 
 class Thread {
 public:

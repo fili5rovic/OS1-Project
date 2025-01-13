@@ -1,33 +1,33 @@
 #include "../h/KSem.hpp"
 
-#include "../h/syscall_c.h"
+#include "../h/syscall_c.hpp"
 
-KSem* KSem::create(const uint64 v) {
+KSem* KSem::create(const int v) {
     return new KSem(v);
 }
 
 int KSem::signal() {
-    if (closed)
+    if(closed) {
         return -1;
-
-    val++;
-    if (int(val) >= 1) {
+    }
+    if(++val >= 0) {
         unblock();
     }
     return 0;
 }
 
 int KSem::wait() {
-    if (closed)
+    if(closed) {
         return -1;
-
-    val--;
-    if (int(val) <= 0) {
-        block();
     }
-    // closed check after dispatching
-    if (closed)
-        return -1;
+
+    if(--val < 0) {
+        block();
+
+        if(closed) {
+            return -1;
+        }
+    }
     return 0;
 }
 
@@ -41,7 +41,7 @@ int KSem::close() {
     if (closed)
         return -1;
     closed = true;
-
+    print("Closing semaphore\n");
     TCB* current = this->blocked.removeFirst();
 
     while (current) {
@@ -65,4 +65,5 @@ void KSem::unblock() {
     }
     unblocked->setBlocked(false);
     Scheduler::put(unblocked);
+
 }
