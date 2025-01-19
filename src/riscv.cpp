@@ -96,9 +96,8 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         }
         case GETC: {
-            char c = __getc();
-            printDebug("C: ",c);
-            ret = (uint64)c;
+            // char c = '3';
+            ret = '3';
             break;
         }
         case PUTC: {
