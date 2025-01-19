@@ -9,10 +9,13 @@
 #include "../h/KSem.hpp"
 
 void Riscv::popSppSpie() {
-    // if(TCB::running->getPrivilege() == TCB::SUPERVISOR)
-    //     Riscv::ms_sstatus(Riscv::SSTATUS_SPP);
-    // else
-    //     Riscv::mc_sstatus(Riscv::SSTATUS_SPP);
+    Riscv::mc_sstatus(Riscv::SSTATUS_SPP);
+    __asm__ volatile("csrw sepc, ra");
+    __asm__ volatile("sret");
+}
+
+void Riscv::systemPopSppSpie() {
+    Riscv::ms_sstatus(Riscv::SSTATUS_SPP);
     __asm__ volatile("csrw sepc, ra");
     __asm__ volatile("sret");
 }
@@ -45,6 +48,7 @@ uint64 Riscv::syscall(uint64* args) {
             void* arg = (void*) args[3];
             void* stack = (void*) args[4];
             *tcb = TCB::createThread(body, arg, stack);
+            // (*tcb)->setPrivilege(TCB::SUPERVISOR); // todo ??? kad ovo otvorim, radi mi 3 i 4 test, ali 7 ne puca a treba
             ret = *tcb == nullptr ? 3 : 0;
             break;
         } case THREAD_CREATE_NO_START: {
@@ -91,8 +95,20 @@ uint64 Riscv::syscall(uint64* args) {
             ret = sem->trywait();
             break;
         }
+        case GETC: {
+            char c = __getc();
+            printDebug("C: ",c);
+            ret = (uint64)c;
+            break;
+        }
+        case PUTC: {
+            ret = 0;
+            char c = (char) args[1];
+            __putc(c);
+            break;
+        }
         default:
-            print("WRONG Code");
+            print("WRONG Code\n");
             break;
     }
 

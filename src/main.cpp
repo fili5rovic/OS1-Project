@@ -24,11 +24,17 @@ void producer(void* arg) {
     print("Finished producer\n");
 }
 
-TCB* kernel;
-TCB* user;
+TCB* kernel = nullptr;
+TCB* user = nullptr;
+
+void test(void*) {
+    // print("Unesi: \n");
+    char t = getc();
+    getc(); // enter
+    printDebug("t: ", t);
+}
 
 int main() {
-    // Riscv::mc_sstatus(Riscv::SSTATUS_SPP);
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
     // Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
@@ -46,12 +52,18 @@ int main() {
     // }
     //
     // sem_close(sem);
-
-
-    user = TCB::createThread(reinterpret_cast<void (*)(void *)>(userMain), nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    // user = TCB::createThread(reinterpret_cast<void (*)(void *)>(producerConsumer_C_API), nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    thread_create(&user, test, nullptr);
+    user->setPrivilege(TCB::SUPERVISOR); // has to be on for 7
     while(!user->isFinished()) {
         thread_dispatch();
     }
+
+    // user = TCB::createThread(test, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    // user->setPrivilege(TCB::SUPERVISOR); // has to be on for 7
+    // while(!user->isFinished()) {
+    //     thread_dispatch();
+    // }
 
 
     // print("Main finished...\n");

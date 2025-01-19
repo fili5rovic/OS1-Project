@@ -166,9 +166,19 @@ int sem_trywait(sem_t id) {
 }
 
 char getc() {
-    return __getc();
+    __asm__ volatile("li a0, 0x41");
+    __asm__ volatile("ecall");
+
+    char ret;
+    __asm__ volatile("mv %0, a0" : "=r"(ret));
+    return ret;
 }
 
+
+
 void putc(char c) {
-    __putc(c);
+    __asm__ volatile("mv a1, %0" : : "r"(c));
+    __asm__ volatile("li a0, 0x42");
+
+    __asm__ volatile("ecall");
 }

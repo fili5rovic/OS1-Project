@@ -30,18 +30,16 @@ void TCB::dispatch()
     TCB *old = running;
     if (!old->isFinished() && !old->isBlocked()) { Scheduler::put(old); }
     running = Scheduler::get();
-    if (!running) {
-        print("No runnable thread in dispatch.");
-        return;
-    }
-
     TCB::contextSwitch(&old->context, &running->context);
 }
 
 void TCB::threadWrapper()
 {
-
-    Riscv::popSppSpie();
+    if (TCB::running->getPrivilege() == USER) {
+        Riscv::popSppSpie();
+    } else {
+        Riscv::systemPopSppSpie();
+    }
     running->body(running->arg);
     running->setFinished(true);
     TCB::yield();

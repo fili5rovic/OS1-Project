@@ -123,9 +123,7 @@ void producerConsumer_C_API() {
                       i > 0 ? producer : producerKeyboard,
                       data + i);
     }
-
     thread_dispatch();
-
     for (int i = 0; i <= threadNum; i++) {
         sem_wait(waitForAll);
     }

@@ -48,6 +48,7 @@ int sem_trywait(sem_t id);
 
 char getc();
 
+
 void putc(char c);
 
 #endif

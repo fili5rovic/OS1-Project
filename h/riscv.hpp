@@ -12,6 +12,7 @@ public:
 
     // pop sstatus.spp and sstatus.spie bits (has to be a non inline function)
     static void popSppSpie();
+    static void systemPopSppSpie();
 
     // read register scause
     static uint64 r_scause();
@@ -97,6 +98,7 @@ public:
         GETC = 0x41,
         PUTC = 0x42
     };
+
 
     // mask set register sstatus
     static void ms_sstatus(uint64 mask);
