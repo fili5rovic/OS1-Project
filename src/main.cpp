@@ -15,8 +15,9 @@ TCB* user = nullptr;
 void test(void* a) {
     print("Unesi: \n");
     char t = getc();
-    // getc(); // enter
-    printDebug("t: ", t);
+    getc(); // enter
+    putc(t);
+    putc('\n');
 }
 
 int main() {
@@ -27,14 +28,16 @@ int main() {
     kernel->setPrivilege(TCB::SUPERVISOR);
     TCB::running = kernel;
 
-    char t = getc();
-    putc(t);
-    // user = TCB::createThread(test, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
+    // char c = getc();
+    // putc(c);
+    // putc('\n');
+    // test(nullptr);
+    user = TCB::createThread(test, nullptr, mem_alloc(DEFAULT_STACK_SIZE));
     // // thread_create(&user, test, nullptr);
-    // // user->setPrivilege(TCB::SUPERVISOR); // has to be on for 7
-    // while(!user->isFinished()) {
-    //     thread_dispatch();
-    // }
+    // user->setPrivilege(TCB::SUPERVISOR); // has to be on for 7 // kada ovo uradim ispisuje 5 a kada izbrisem ispisuje A
+    while(!user->isFinished()) {
+        thread_dispatch();
+    }
 
     // print("Main finished...\n");
     return 0;

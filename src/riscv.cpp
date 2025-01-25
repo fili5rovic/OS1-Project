@@ -96,8 +96,8 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         }
         case GETC: {
-            // char c = '3';
-            ret = '3';
+            char c = '5';
+            ret = c;
             break;
         }
         case PUTC: {
@@ -132,7 +132,6 @@ void Riscv::handleSupervisorTrap() {
         // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
         uint64 volatile sepc = r_sepc() + 4;
         uint64 volatile sstatus = r_sstatus();
-        // TCB::dispatch(); //UNCOMMENT FOR THREAD TEST
 
         w_a0(syscall(args));
 

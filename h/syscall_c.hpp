@@ -4,7 +4,6 @@
 #include "KSem.hpp"
 #include "tcb.hpp"
 #include "../lib/hw.h"
-#include "../lib/console.h"
 
 void* mem_alloc(size_t size);
 
@@ -47,7 +46,6 @@ int sem_trywait(sem_t id);
  */
 
 char getc();
-
 
 void putc(char c);
 
