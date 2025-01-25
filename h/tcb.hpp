@@ -6,7 +6,6 @@
 #define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_TCB_HPP
 
 #include "../lib/hw.h"
-#include "scheduler.hpp"
 #include "print.hpp"
 
 // Thread Control Block
@@ -60,10 +59,11 @@ public:
         return this->privilege;
     }
 
+    uint64 oldSP = 0;
+
 private:
     TCB(Body body, void* arg, void* stack)
     {
-
         this->stack = (uint64*)stack;
         this->body = body;
         this->privilege = USER;

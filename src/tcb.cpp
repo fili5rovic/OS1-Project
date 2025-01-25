@@ -1,5 +1,6 @@
 #include "../h/tcb.hpp"
 #include "../h/riscv.hpp"
+#include "../h/scheduler.hpp"
 
 TCB *TCB::running = nullptr;
 
@@ -27,6 +28,7 @@ void TCB::yield() {
 
 void TCB::dispatch()
 {
+    // timeSliceCounter = 0;
     TCB *old = running;
     if (!old->isFinished() && !old->isBlocked()) { Scheduler::put(old); }
     running = Scheduler::get();

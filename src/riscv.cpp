@@ -20,8 +20,16 @@ void Riscv::systemPopSppSpie() {
     __asm__ volatile("sret");
 }
 
-uint64 Riscv::syscall(uint64* args) {
+uint64 Riscv::syscall() {
     uint64 ret = 0;
+    uint64 args[5];
+
+    args[0] = r_a_index_stack(0);
+    args[1] = r_a_index_stack(1);
+    args[2] = r_a_index_stack(2);
+    args[3] = r_a_index_stack(3);
+    args[4] = r_a_index_stack(4);
+
     uint64 code = args[0];
 
     switch (code) {
@@ -32,7 +40,7 @@ uint64 Riscv::syscall(uint64* args) {
         }
         case MEM_FREE: {
             // ret = KMemoryAllocator::getInstance().free((void*) args[1]);
-            ret = (uint64) __mem_free(args);
+            ret = (uint64) __mem_free((void*)args[1]);
             break;
         }
         case THREAD_START: {
@@ -96,8 +104,8 @@ uint64 Riscv::syscall(uint64* args) {
             break;
         }
         case GETC: {
-            char c = '5';
-            ret = c;
+            char c = __getc();
+            ret = (uint64)c;
             break;
         }
         case PUTC: {
@@ -110,19 +118,14 @@ uint64 Riscv::syscall(uint64* args) {
             print("WRONG Code\n");
             break;
     }
-
     return ret;
 }
 
 void Riscv::handleSupervisorTrap() {
-    uint64 args[5];
-    loadParams(args);
-
-    uint64 a1 = r_a1();
+    uint64 savedSP = TCB::running->oldSP;
+    TCB::running->oldSP = r_sscratch();
 
     const uint64 scause = r_scause();
-
-    w_a1(a1);
 
     if (scause == TIMER_INTERRUPT) {
         handleTimerInterrupt();
@@ -132,8 +135,7 @@ void Riscv::handleSupervisorTrap() {
         // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
         uint64 volatile sepc = r_sepc() + 4;
         uint64 volatile sstatus = r_sstatus();
-
-        w_a0(syscall(args));
+        w_a0_stack(syscall());
 
         w_sstatus(sstatus);
         w_sepc(sepc);
@@ -149,6 +151,8 @@ void Riscv::handleSupervisorTrap() {
         __asm__ volatile("li t1, 0x100000");
         __asm__ volatile("sw t0, 0(t1)");
     }
+
+    TCB::running->oldSP = savedSP;
 }
 
 
@@ -170,3 +174,16 @@ void Riscv::handleTimerInterrupt() {
         w_sepc(sepc);
     }
 }
+
+void Riscv::w_a0_stack(uint64 a0) {
+    uint64 addr = TCB::running->oldSP + 80;
+    __asm__ volatile("sd %[a0], 0(%[addr])" : : [a0] "r"(a0), [addr] "r"(addr));
+}
+
+uint64 Riscv::r_a_index_stack(int index) {
+    uint64 addr = TCB::running->oldSP + 80 + 8*index;
+    uint64 ret;
+    __asm__ volatile("ld %[ret], 0(%[addr])" : [ret]"=r"(ret) : [addr]"r"(addr));
+    return ret;
+}
+

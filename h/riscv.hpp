@@ -7,6 +7,7 @@
 
 #include "../lib/hw.h"
 
+
 class Riscv {
 public:
 
@@ -112,6 +113,10 @@ public:
     // write register sstatus
     static void w_sstatus(uint64 sstatus);
 
+    static void w_a0_stack(uint64);
+    static uint64 r_a_index_stack(int index);
+    static uint64 r_sscratch();
+
     // supervisor trap
     static void supervisorTrap();
 
@@ -126,7 +131,7 @@ private:
 
     static void loadParams(uint64*);
 
-    static uint64 syscall(uint64* args);
+    static uint64 syscall();
 
     // static inline void handleInterrupts();
 };
@@ -249,6 +254,14 @@ inline void Riscv::w_a0(uint64 a0) {
 inline void Riscv::w_a1(uint64 a1) {
     __asm__ volatile ("mv a1, %0" : : "r"(a1));
 }
+
+inline uint64 Riscv::r_sscratch() {
+    uint64 volatile sscratch;
+    __asm__ volatile("csrr %0, sscratch" : "=r"(sscratch));
+    return sscratch;
+}
+
+
 
 inline void Riscv::loadParams(uint64 *arr)
 {

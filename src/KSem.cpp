@@ -1,6 +1,6 @@
 #include "../h/KSem.hpp"
-
 #include "../h/syscall_c.hpp"
+#include "../h/scheduler.hpp"
 
 KSem* KSem::create(const int v) {
     return new KSem(v);
