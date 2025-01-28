@@ -24,13 +24,10 @@ void Riscv::handleTimerInterrupt() {
     uint64 volatile sepc = r_sepc();
     uint64 volatile sstatus = r_sstatus();
     mc_sip(SIP_SSIP);
-
-
     TCB::timeSliceCounter++;
     if (TCB::timeSliceCounter >= TCB::running->getTimeSlice()) {
         TCB::dispatch();
     }
-
     w_sstatus(sstatus);
     w_sepc(sepc);
 }
@@ -82,7 +79,7 @@ void Riscv::handleInternalInterrupts(uint64 scause) {
                 void* arg = (void*) r_a_index_stack(3);
                 void* stack = (void*) r_a_index_stack(4);
                 *tcb = TCB::createThread(body, arg, stack);
-                // (*tcb)->setPrivilege(TCB::SUPERVISOR); // todo ??? kad ovo otvorim, radi mi 3 i 4 test, ali 7 ne puca a treba
+                // (*tcb)->setPrivilege(TCB::SUPERVISOR);
                 ret = *tcb == nullptr ? 3 : 0;
                 break;
             }
