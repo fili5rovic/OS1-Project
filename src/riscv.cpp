@@ -20,158 +20,146 @@ void Riscv::systemPopSppSpie() {
     __asm__ volatile("sret");
 }
 
-uint64 Riscv::syscall() {
-    uint64 ret = 0;
-    uint64 args[5];
+void Riscv::handleTimerInterrupt() {
+    uint64 volatile sepc = r_sepc();
+    uint64 volatile sstatus = r_sstatus();
+    mc_sip(SIP_SSIP);
 
-    args[0] = r_a_index_stack(0);
-    args[1] = r_a_index_stack(1);
-    args[2] = r_a_index_stack(2);
-    args[3] = r_a_index_stack(3);
-    args[4] = r_a_index_stack(4);
 
-    uint64 code = args[0];
-
-    switch (code) {
-        case MEM_ALLOC: {
-            ret = (uint64) __mem_alloc(args[1]);
-            // ret = (uint64) KMemoryAllocator::getInstance().allocate(args[1]);
-            break;
-        }
-        case MEM_FREE: {
-            // ret = KMemoryAllocator::getInstance().free((void*) args[1]);
-            ret = (uint64) __mem_free((void*)args[1]);
-            break;
-        }
-        case THREAD_START: {
-            TCB* tcb = (TCB*) args[1];
-            TCB::startTCB(tcb);
-            ret = 0;
-            break;
-        }
-        case THREAD_CREATE: {
-            using Body = void (*)(void*);
-            TCB** tcb = (TCB**) args[1];
-            Body body = Body(args[2]);
-            void* arg = (void*) args[3];
-            void* stack = (void*) args[4];
-            *tcb = TCB::createThread(body, arg, stack);
-            // (*tcb)->setPrivilege(TCB::SUPERVISOR); // todo ??? kad ovo otvorim, radi mi 3 i 4 test, ali 7 ne puca a treba
-            ret = *tcb == nullptr ? 3 : 0;
-            break;
-        } case THREAD_CREATE_NO_START: {
-            using Body = void (*)(void*);
-            TCB** tcb = (TCB**) args[1];
-            Body body = Body(args[2]);
-            void* arg = (void*) args[3];
-            void* stack = (void*) args[4];
-            *tcb = TCB::createThreadNoStart(body, arg, stack);
-            ret = *tcb == nullptr ? 3 : 0;
-            break;
-        }
-        case THREAD_EXIT:
-            ret = TCB::thread_exit();
-            break;
-        case THREAD_DISPATCH: {
-            TCB::dispatch();
-            break;
-        }
-        case SEM_OPEN: {
-            int val = (int)args[2];
-            KSem** sem = (KSem**) args[1];
-            *sem = KSem::create(val);
-            ret = *sem == nullptr ? 2 : 0;
-            break;
-        }
-        case SEM_CLOSE: {
-            KSem* sem = (KSem*) args[1];
-            ret = sem->close();
-            break;
-        }
-        case SEM_WAIT: {
-            KSem* sem = (KSem*) args[1];
-            ret = sem->wait();
-            break;
-        }
-        case SEM_SIGNAL: {
-            KSem* sem = (KSem*) args[1];
-            ret = sem->signal();
-            break;
-        }
-        case SEM_TIMEDWAIT: {
-            KSem* sem = (KSem*) args[1];
-            ret = sem->trywait();
-            break;
-        }
-        case GETC: {
-            char c = __getc();
-            ret = (uint64)c;
-            break;
-        }
-        case PUTC: {
-            ret = 0;
-            char c = (char) args[1];
-            __putc(c);
-            break;
-        }
-        default:
-            print("WRONG Code\n");
-            break;
+    TCB::timeSliceCounter++;
+    if (TCB::timeSliceCounter >= TCB::running->getTimeSlice()) {
+        TCB::dispatch();
     }
-    return ret;
+
+    w_sstatus(sstatus);
+    w_sepc(sepc);
 }
+
+extern int thread_exit();
 
 void Riscv::handleSupervisorTrap() {
     uint64 savedSP = TCB::running->oldSP;
     TCB::running->oldSP = r_sscratch();
 
-    const uint64 scause = r_scause();
+    uint64 scause = r_scause();
+    if (scause == TIMER_INTERRUPT) handleTimerInterrupt();
+    else if (scause == CONSOLE_INTERRUPT) console_handler();
+        // else if(scause & (1ul << 63)) {
+        //     stopEmulator();
+        // }
+    else handleInternalInterrupts(scause);
 
-    if (scause == TIMER_INTERRUPT) {
-        handleTimerInterrupt();
-    } else if (scause == CONSOLE_INTERRUPT) {
-        handleConsoleInterrupt();
-    } else if (scause == USER_INTERRUPT || scause == SYSTEM_INTERRUPT) {
-        // interrupt: no; cause code: environment call from U-mode(8) or S-mode(9)
-        uint64 volatile sepc = r_sepc() + 4;
+    TCB::running->oldSP = savedSP;
+}
+
+void Riscv::handleInternalInterrupts(uint64 scause) {
+    if (scause == USER_INTERRUPT || scause == SYSTEM_INTERRUPT) {
         uint64 volatile sstatus = r_sstatus();
-        w_a0_stack(syscall());
-
+        uint64 volatile sepc = r_sepc() + 4;
+        uint64 syscall = r_a_index_stack(0);
+        uint64 ret = 0;
+        switch (syscall) {
+            case MEM_ALLOC: {
+                ret = (uint64) __mem_alloc(r_a_index_stack(1));
+                // ret = (uint64) KMemoryAllocator::getInstance().allocate(r_a_index_stack(1));
+                break;
+            }
+            case MEM_FREE: {
+                // ret = KMemoryAllocator::getInstance().free((void*) r_a_index_stack(1));
+                ret = (uint64) __mem_free((void*) r_a_index_stack(1));
+                break;
+            }
+            case THREAD_START: {
+                TCB* tcb = (TCB*) r_a_index_stack(1);
+                TCB::startTCB(tcb);
+                ret = 0;
+                break;
+            }
+            case THREAD_CREATE: {
+                using Body = void (*)(void*);
+                TCB** tcb = (TCB**) r_a_index_stack(1);
+                Body body = Body(r_a_index_stack(2));
+                void* arg = (void*) r_a_index_stack(3);
+                void* stack = (void*) r_a_index_stack(4);
+                *tcb = TCB::createThread(body, arg, stack);
+                // (*tcb)->setPrivilege(TCB::SUPERVISOR); // todo ??? kad ovo otvorim, radi mi 3 i 4 test, ali 7 ne puca a treba
+                ret = *tcb == nullptr ? 3 : 0;
+                break;
+            }
+            case THREAD_CREATE_NO_START: {
+                using Body = void (*)(void*);
+                TCB** tcb = (TCB**) r_a_index_stack(1);
+                Body body = Body(r_a_index_stack(2));
+                void* arg = (void*) r_a_index_stack(3);
+                void* stack = (void*) r_a_index_stack(4);
+                *tcb = TCB::createThreadNoStart(body, arg, stack);
+                ret = *tcb == nullptr ? 3 : 0;
+                break;
+            }
+            case THREAD_EXIT:
+                ret = TCB::thread_exit();
+                break;
+            case THREAD_DISPATCH: {
+                TCB::dispatch();
+                break;
+            }
+            case SEM_OPEN: {
+                int val = (int) r_a_index_stack(2);
+                KSem** sem = (KSem**) r_a_index_stack(1);
+                *sem = KSem::create(val);
+                ret = *sem == nullptr ? 2 : 0;
+                break;
+            }
+            case SEM_CLOSE: {
+                KSem* sem = (KSem*) r_a_index_stack(1);
+                ret = sem->close();
+                break;
+            }
+            case SEM_WAIT: {
+                KSem* sem = (KSem*) r_a_index_stack(1);
+                ret = sem->wait();
+                break;
+            }
+            case SEM_SIGNAL: {
+                KSem* sem = (KSem*) r_a_index_stack(1);
+                ret = sem->signal();
+                break;
+            }
+            case SEM_TIMEDWAIT: {
+                KSem* sem = (KSem*) r_a_index_stack(1);
+                ret = sem->trywait();
+                break;
+            }
+            case GETC: {
+                char c = __getc();
+                ret = (uint64) c;
+                break;
+            }
+            case PUTC: {
+                ret = 0;
+                char c = (char) r_a_index_stack(1);
+                __putc(c);
+                break;
+            }
+            default:
+                print("WRONG Code\n");
+                break;
+        }
+        w_a0_stack(ret);
         w_sstatus(sstatus);
         w_sepc(sepc);
     } else {
+        // thread_exit();
         print("\n---- ERROR ----\n");
         printDebug("scause: ", scause);
         printDebug("sepc: ", r_sepc());
         printDebug("stval: ", r_stval());
         print("---------------\n");
 
-        // STOP Emulator
+        // stop emulator
         __asm__ volatile("li t0, 0x5555");
         __asm__ volatile("li t1, 0x100000");
         __asm__ volatile("sw t0, 0(t1)");
-    }
-
-    TCB::running->oldSP = savedSP;
-}
-
-
-void Riscv::handleConsoleInterrupt() {
-    // interrupt: yes; cause code: supervisor external interrupt (PLIC; could be keyboard)
-    console_handler();
-}
-
-void Riscv::handleTimerInterrupt() {
-    // interrupt: yes; cause code: supervisor software interrupt (CLINT; machine timer interrupt)
-    mc_sip(SIP_SSIP);
-    TCB::timeSliceCounter++;
-    if (TCB::timeSliceCounter >= TCB::running->getTimeSlice()) {
-        uint64 volatile sepc = r_sepc();
-        uint64 volatile sstatus = r_sstatus();
-
-        TCB::dispatch();
-        w_sstatus(sstatus);
-        w_sepc(sepc);
     }
 }
 
@@ -181,9 +169,8 @@ void Riscv::w_a0_stack(uint64 a0) {
 }
 
 uint64 Riscv::r_a_index_stack(int index) {
-    uint64 addr = TCB::running->oldSP + 80 + 8*index;
+    uint64 addr = TCB::running->oldSP + 80 + 8 * index;
     uint64 ret;
     __asm__ volatile("ld %[ret], 0(%[addr])" : [ret]"=r"(ret) : [addr]"r"(addr));
     return ret;
 }
-

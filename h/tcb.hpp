@@ -59,7 +59,7 @@ public:
         return this->privilege;
     }
 
-    uint64 oldSP = 0;
+    uint64 oldSP = 5;
 
 private:
     TCB(Body body, void* arg, void* stack)

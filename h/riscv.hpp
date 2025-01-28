@@ -122,18 +122,14 @@ public:
 
 private:
 
-    // supervisor trap handler
     static void handleSupervisorTrap();
 
-    static void handleConsoleInterrupt();
+    static void handleInternalInterrupts(uint64 scause);
 
     static void handleTimerInterrupt();
 
     static void loadParams(uint64*);
 
-    static uint64 syscall();
-
-    // static inline void handleInterrupts();
 };
 
 inline uint64 Riscv::r_scause()
@@ -271,6 +267,8 @@ inline void Riscv::loadParams(uint64 *arr)
     __asm__ volatile ("mv %0, a3" : "=r" (arr[3]));
     __asm__ volatile ("mv %0, a4" : "=r" (arr[4]));
 }
+
+
 
 
 
