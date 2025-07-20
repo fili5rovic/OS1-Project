@@ -30,18 +30,11 @@ int main() {
     kernel = TCB::createThread(nullptr, nullptr,__mem_alloc(DEFAULT_STACK_SIZE));
     kernel->setPrivilege(TCB::SUPERVISOR);
     TCB::running = kernel;
-                            // reinterpret_cast<void (*)(void *)>(userMain)
-    // char c = getc();
-    // putc(c);
-    // putc('\n');
-    // test(nullptr);
+
     user = TCB::createThread(reinterpret_cast<void (*)(void *)>(userMain), nullptr, mem_alloc(DEFAULT_STACK_SIZE));
-    // // thread_create(&user, test, nullptr);
-    // user->setPrivilege(TCB::SUPERVISOR); // has to be on for 7 // kada ovo uradim ispisuje 5 a kada izbrisem ispisuje A
     while(!user->isFinished()) {
         thread_dispatch();
     }
 
-    // print("Main finished...\n");
     return 0;
 }

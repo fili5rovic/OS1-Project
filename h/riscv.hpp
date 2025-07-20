@@ -7,7 +7,6 @@
 
 #include "../lib/hw.h"
 
-
 class Riscv {
 public:
 
@@ -24,14 +23,6 @@ public:
         TIMER_INTERRUPT = 0x8000000000000001UL,
         CONSOLE_INTERRUPT = 0x8000000000000009UL
     };
-
-    static uint64 r_a0();
-
-    static uint64 r_a1();
-
-    static void w_a0(uint64 a0);
-
-    static void w_a1(uint64 a1);
 
     // write register scause
     static void w_scause(uint64 scause);
@@ -130,6 +121,8 @@ private:
 
     static void loadParams(uint64*);
 
+
+
 };
 
 inline uint64 Riscv::r_scause()
@@ -224,32 +217,6 @@ inline void Riscv::w_sstatus(uint64 sstatus)
     __asm__ volatile ("csrw sstatus, %[sstatus]" : : [sstatus] "r"(sstatus));
 }
 
-inline uint64 Riscv::r_a0() {
-    uint64 volatile a_ret;
-
-    __asm__ volatile ("mv %0, a0" : "=r"(a_ret));
-    return a_ret;
-}
-
-inline uint64 Riscv::r_a1() {
-    uint64 volatile a_ret;
-
-    __asm__ volatile (
-        "mv %0, a1"
-        : "=r"(a_ret)
-        :
-        : "a0", "a1", "a2", "a3", "a4", "a5"
-    );
-    return a_ret;
-}
-
-inline void Riscv::w_a0(uint64 a0) {
-    __asm__ volatile ("mv a0, %0" : : "r"(a0));
-}
-
-inline void Riscv::w_a1(uint64 a1) {
-    __asm__ volatile ("mv a1, %0" : : "r"(a1));
-}
 
 inline uint64 Riscv::r_sscratch() {
     uint64 volatile sscratch;

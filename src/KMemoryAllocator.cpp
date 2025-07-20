@@ -7,9 +7,6 @@
 
 void* KMemoryAllocator::allocate(const size_t _size) {
     const size_t newSize = alignToBlockSize(_size);
-    // Helper::print("TRYING TO ALLOCATE: ");
-    // Helper::printInt(newSize);
-    // Helper::print("\n");
 
     Node* current = freeHead;
     while (current != nullptr) {

@@ -22,7 +22,7 @@ TCB* TCB::createThreadNoStart(Body body, void* arg, void* stack) {
 }
 
 void TCB::yield() {
-    Riscv::w_a0(0x13);
+    __asm__ volatile("li a0, 0x13");
     __asm__ volatile ("ecall");
 }
 
