@@ -3,6 +3,7 @@
 //
 
 
+#include "../h/KMemoryAllocator.hpp"
 #include "../h/riscv.hpp"
 #include "../h/syscall_c.hpp"
 #include "../h/tcb.hpp"
@@ -24,6 +25,16 @@ void test(void* a) {
 }
 
 int main() {
+    KMemoryAllocator::init();
+
+    // for (int i = 0; i < 10; i++) {
+    //     int* a = new int;
+    //     *a = i;
+    //     printInt(i);
+    //     printNewLine();
+    //     delete a;
+    // }
+
     Riscv::w_stvec((uint64) &Riscv::supervisorTrap);
     // Riscv::ms_sstatus(Riscv::SSTATUS_SIE); // OTVARA tajmer
 
